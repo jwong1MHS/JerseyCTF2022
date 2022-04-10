@@ -1,0 +1,125 @@
+# Configuration of content analysers (included by cf/sherlock)
+
+Analyser {
+
+# The analyser modules can be plugged into Sherlock at different places
+# and tag documents according to their contents and other attributes.
+# Also, a single analyser can be used at multiple places and executed
+# conditionally, so you can for example tag documents in the gatherer
+# and let the indexer tag only the ones not tagged by the gatherer.
+#
+# Possible places:
+#	raw		just after the charset conversion of HTML files: here you can analyse
+#			the raw HTML contents (including all tags, scripts etc.)
+#	gather		just after the page is gathered: this is a good place for modules
+#			which are expensive to execute and have small output (the output
+#			gets cached in the gatherer's database, so it won't be rebuilt
+#			on every indexation).
+#	scanner		the first pass of the indexer (before merging): Attributes generated
+#			here are available to the whole indexer (including various custom
+#			hooks), but beware, you have to explicitly instruct the indexer
+#			about how to propagate them -- see Indexer.LabelAttrs and around.
+#	chewer		the second pass of the indexer (after merging): Probably a better hook
+#			for most purposes, because the propagation rules are simpler and
+#			the analyser is not run on many cards which turn out to be equivalent.
+#	atest		the atest utility for testing analysers
+#
+# Possible conditions:
+#	always
+#	needed		if the document hasn't been analysed yet
+#	<time>		if needed or the document has been last modified earlier than <time>
+# Format:
+#	Hook(Raw|Gather|Scanner|Chewer|ATest)	{ Analyser=name; Condition=(always|needed|27836...); Paremeter=string; }
+
+# Trace execution of the analysers
+Trace			0
+
+# Log analyser statistics
+LogStats		1
+
+# `Analyser <place> <module> <condition>' attaches a single module.
+
+#ifdef CONFIG_LANG
+# Language auto-detection, see section LangDetect for related settings.
+HookGather		lang needed
+HookScanner		lang needed
+#endif
+
+#if CONFIG_IMAGES_DUP || CONFIG_IMAGES_SIM
+# Image signatures
+HookGather		imagesig needed
+HookScanner		imagesig needed
+#endif
+
+# IP address classifier, see section IPRanges for a description.
+#HookChewer		iprange always
+
+# Substring classifier, see section SubStrings for a description.
+# Note: The parameter must correspond to a SubStrings.Contexts.Name.
+#HookGather		substr always example
+#HookScanner		substr needed example
+#HookChewer		substr always example
+
+}
+
+######## Substring Search analyser ##############################################
+
+SubStrings {
+
+# It is an analyser module which tags the documents containing one or more
+# occurences of given parts of words or phrases.
+# Words in phrases should be delimited with ':' special characters, that
+# match with any positive number of nonalpha-characters or sentence start/end.
+# The same character can be used to match only with prefixes/suffixes.
+#
+# Each analyser hook uses one "Context", each context should contain
+# at least one "Group". These subsections are identified by unique names
+# as you can see in the examples below. 
+#
+# Each context must contain an attribute where to store the analyser's results
+# and a set of parts to analyse (text, metas, urls). The resulting
+# value stored to Context.Attr is simply the OR combination
+# of all matched parts of words or phrases as defined in included groups.
+# If Context.Append is 1, the result is combined with the previous
+# value of Context.Attr, otherwise it is overriden.
+#
+#Group {
+#	Name	group1
+#	Search	:mj: :martin:mareš
+#}
+#Group {
+#	Name	group2
+#	Search	:matfyz
+#}
+#Context {
+#	Name	example
+#	Attr	8
+#	Append	0
+#	Parts	text metas urls
+#	Groups	group1 0x1
+#	Groups	group2 0x2
+#}
+
+}
+
+######## IP Range Aliases analyser ##############################################
+
+IPRanges {
+
+# IP ranges is an analyser module which assigns aliases to selected IP addresses
+# or their ranges according to this configuration, and attaches a configured
+# attribute for each alias found in the card. Every line contains one alias followed by
+# one or more IPs or IP intervals (see examples below). Alternatively, you can assign
+# multiple ranges to one alias on separated lines.
+# Crossing pairs of intervals [A,B] and [C,D], where A < C <= B < D, are not supported.
+# A single alias should not cover the same IP address multiple times.
+# If you index the generated attribute in your custom hooks, keep in mind that a single
+# IP alias should not contain an enormous number of documents, else searching will be slow.
+#Alias			{ Name=ExampleIP;	Range=81.31.5.130 }
+#Alias			ExampleRange	81.31.5.0-81.31.5.100 81.31.5.130
+#Alias			ExampleRange	195.113.31.125
+
+# Per-URL attribute where the aliases will be stored
+#Attr			9
+
+}

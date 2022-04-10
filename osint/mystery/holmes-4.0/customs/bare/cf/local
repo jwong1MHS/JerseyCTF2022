@@ -1,0 +1,12 @@
+# Local configuration for the bare customization
+
+# Since we don't use the default set of word types, we also must tell the search
+# server which weights should it assign to these types:
+
+Search {
+	Database:edit { Name main } {
+		WordWeights { text=20; }
+		MetaWeights { }
+		StringWeights { }
+	}
+}

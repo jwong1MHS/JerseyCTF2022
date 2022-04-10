@@ -1,0 +1,55 @@
+# Configuration for checking web consistency, see doc/hints for
+# an explanation.
+
+Include cf/sherlock
+
+# Replace the standard set of parsers
+Parse.Type:clear
+Parse.Type	text/html		html
+Parse.Type	x-sherlock/robots	robots
+Parse.Type	*/*			sink
+
+# Use a different log file
+GatherD.Logfile		log/checker
+
+# Override settings of standard modules to make them log all errors
+Gather.Filter		cf/checker-filter
+Gather.MaxObjSize	1g
+Gather.MaxDecodeSize	1g
+Gather.MinSummedSize	0
+Gather.LogRefErrors	1
+Gather.LogBaseErrors	1
+URL.IgnoreSpaces	0
+URL.IgnoreUnderflow	0
+HTTP.LengthChecks	1
+Charset.LogErrors	1
+HTML.CommentMode	0
+HTML.QuoteHack		0
+HTML.ScriptHack		0
+HTML.CharRefHack	0
+HTML.LogMetas		1
+Robots.WorkArounds	0
+
+# Avoid some features which could interfere with checking
+GatherD.AutoGoRoot	0
+
+# Be more aggressive wrt. recoverable errors
+GatherD.RecErrLimit	0
+GatherD.RecErrDelay1	60
+GatherD.MaxRecErr	1
+
+# Download everything
+HTTP.AcceptTypes	*/*
+
+# Configuration of the checker script which analyses the logs
+Checker {
+
+# Log to analyse
+AnalyseLog		log/checker
+
+# Report links pointing to redirects as errors (default: 0)
+ReportRedirectLinks	1
+
+# Report only errors on pages with URL's matching this regex (default: all)
+LimitByRegex		^http://.*\.cuni\.cz/
+}

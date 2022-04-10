@@ -1,0 +1,11 @@
+# pkg-config metadata for libproto
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libproto
+Description: Sherlock gatherer protocols
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lproto
+Requires: @DEPS@

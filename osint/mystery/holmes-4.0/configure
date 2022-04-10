@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+# Sherlock Configure Script
+# (c) 2005 Martin Mares <mj@ucw.cz>
+
+use warnings;
+use strict;
+
+our $srcdir;
+BEGIN {
+	my $pkgfile = "ucw/wildmatch.c";
+	if (!defined ($srcdir = $ENV{"SRCDIR"})) {
+		if (-f $pkgfile) {
+			$srcdir=".";
+		} elsif ($0 =~ m@^(.*)/configure$@ && -f "$1/$pkgfile") {
+			$srcdir=$1;
+		} else {
+			die "Don't know how to find myself. Please set SRCDIR manually.\n";
+		}
+	}
+}
+
+use lib "$srcdir/ucw/perl";
+use UCW::Configure;
+
+Init($srcdir, undef);
+Include "sherlock/default.cfg";
+Log "### Configuring Sherlock " . Get("SHERLOCK_VERSION") . " with configuration " . Get("CONFIG") . "\n";
+Include Get("CONFIG");
+require UCW::Configure::Paths;
+require UCW::Configure::C;
+require UCW::Configure::LibUCW;
+require UCW::Configure::Doc;
+Finish();
+
+my $cust = FindFile(Get("CUSTOM_DIR") . "/Makefile");
+$cust =~ s@/Makefile$@@;
+Log "Linking custom to $cust ... ";
+-l "custom" and unlink "custom";
+-e "custom" and Fail "custom already exists and it's not a link";
+symlink $cust, "custom" or Fail($!);
+Log "done\n";
+
+Log "\nConfigured, run `make' to build everything.\n";

@@ -1,0 +1,11 @@
+# pkg-config metadata for libindexer
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libindexer
+Description: Sherlock indexer helper functions
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lindexer
+Requires: @DEPS@

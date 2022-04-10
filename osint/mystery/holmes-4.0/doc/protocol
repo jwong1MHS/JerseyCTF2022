@@ -1,0 +1,129 @@
+Sherlock wire protocol
+~~~~~~~~~~~~~~~~~~~~~~
+This is an universal protocol for connecting modules of Sherlock together.
+So far, it is used only in the administration system, but we plan to convert
+the other modules as well.
+
+The protocol has two layers: the framing layer (the format of data sent
+over the connection, defined by this document) and the application layer
+(specific for each module using the protocol).
+
+As usually, the protocol connects two parties: a server and a client.
+The communication goes this way:
+
+	1. Client establishes a TCP connection to the server (each server has its own port).
+	2. Server greets the client.
+	3. Client sends an INIT command and waits for a reply.
+	4. Client continues sending commands and gathering replies.
+	5. Client finishes the communication by closing the connection.
+
+In its basic form, the protocol is purely textual with lines terminated by `\n'.
+Except for the initial greeting, all requests and replies are normal Sherlock objects
+(see doc/objects) in the simple textual form (BUCKET_TYPE_PLAIN), each terminated by
+a blank line.
+
+Commands, capabilities and other items are identified by tokens. Tokens have
+the syntax of C language identifiers and they are case-sensitive.
+
+Greeting
+~~~~~~~~
+The server's greeting consists of a single line containing the string "SHP-1.0",
+followed by an object describing the capabilities of the server.
+
+The "1.0" is the major and minor version of the protocol. Minor versions are
+backwards compatible, major versions aren't. The client MUST verify that it supports
+the reported major version and it SHOULD verify that it has connected to the right
+module.
+
+The following attributes are defined by the framing layer:
+
+	V	version of Sherlock
+	C	protocol capability supported by the server; each capability has its own
+		attribute containing the corresponding token. Capabilities come into
+		effect only when explicitly activated by the client, usually in the INIT
+		command.
+
+Attributes named by small letters are reserved for use by the application layer.
+The following ones are recommended to be used:
+
+	c	capability supported by the application (syntax and semantics similar to `C')
+
+Requests and replies
+~~~~~~~~~~~~~~~~~~~~
+Each request and reply is an object. Both upper- and lowercase letter attributes
+can be used by the application, all other names are reserved for the framing layer.
+
+The following request attributes are defined:
+
+	!	command (a token)
+	#	client's identifier (an arbitrary string; optional)
+
+The following reply attributes are defined:
+
+	-	error indication (<error-code> <SPACE> <message>)
+	+	positive reply indication (<ok-code> <SPACE> <message>)
+		Negative replies contain only `-', positive either only `+' or neither.
+	#	client's identifier (the server MUST copy the client identifier of the
+		request here or omit the attribute if it wasn't present in the request)
+	!	(used by the REPORT capability)
+
+Clients are allowed to send multiple requests without waiting for replies.
+In such cases, the server can send the replies in a different order. Also,
+the server can have an internal limit on the number of requests buffered
+and stop reading from the connection when the buffer is full. Such clients
+therefore must be non-blocking. (On the other hand, the protocol guarantees
+that a single request [or a single packet when run in BINARY mode] fits in
+server buffer, so it is safe to transmit the whole packet in blocking mode
+before reading the reply.)
+
+The INIT command
+~~~~~~~~~~~~~~~~
+After receiving the server's greeting, the client MUST send an INIT command to set up
+parameters of the connection and select optional features of the protocol. The INIT
+request can contain the following attributes (as in the greeting, upper-case letters
+are reserved for the framing layer, lower-case ones for the application):
+
+	C	activate server capability
+	c	(recommended) activate application capability
+
+Status codes
+~~~~~~~~~~~~
+The <error-code> and <ok-code> specified in the replies are positive 31-bit
+integers, usually padded to 3 decimal digits, but the padding is optional. The
+range 1-99 is reserved for the framing layer, see the include files for the
+assignments.
+
+The REPORT capability
+~~~~~~~~~~~~~~~~~~~~~
+If activated, the server can send unsolicited status reports to the clients.
+They are formatted as normal replies, but instead of the `+', `-' and `#'
+attributes, they carry a `!' attribute specifying the type of the status
+message (as a token).
+
+The BINARY capability
+~~~~~~~~~~~~~~~~~~~~~
+If the server and client want to exchange huge quantities of raw data, they can
+agree on switching the protocol to binary mode. Requests and replies are then
+sent as packets of the following format (all numbers are big-endian):
+
+	u32	0xcafef00d	synchronization pattern
+	u32	request-id	used instead of the `#' attribute, unsolicited
+				status reports have ID 0.
+	u32	flags		0x00000001 = object present
+				0x00000002 = binary data present
+				0x00000004 = will be continued
+	If `object present':
+		byte	object[]	object attributes in BUCKET_TYPE_V33 format
+		byte	0x00
+	If `binary data present':
+		u32	data-size	
+		byte	data[]
+
+A single request or reply can be sent in multiple packets (all have the same
+request-id and all but the last one have the `will be continued' flag set).
+
+The binary data can be split between packets arbitrarily with no changes to
+semantics. Object attributes are parts of a common object; generally, all
+attributes are sent in the first packet and only additionally discovered errors
+are reported in the last packet, but the application can specify different
+semantics.

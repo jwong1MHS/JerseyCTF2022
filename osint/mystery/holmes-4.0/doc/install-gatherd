@@ -1,0 +1,65 @@
+Differences when using gatherd
+==============================
+
+If you decide to use gatherd instead of recommended shepherd, almost everything
+is the same, with a few exceptions. They can be found in this document. If you
+want to install it, both doc/install and this document are relevant to you.
+
+Compiling
+---------
+You have to specify that you prefer gatherd over shepherd. You do it in the
+configuration phase, by turning on CONFIG_GATHERD and turning off
+CONFIG_SHEPHERD and CONFIG_SHEPHERD_PROTOCOL.
+
+	./configure free -CONFIG_SHEPHERD -CONFIG_SHEPHERD_PROTOCOL CONFIG_GATHERD
+
+Then continue the usual way, by make and make install.
+
+Configuration
+-------------
+Skip the shepherd section entirely. Instead, configure:
+
+  o GatherD.MinServerDelay -- this one sets the minimum interval between two
+    accesses to the same server; if you're indexing your own server, you can
+    safely decrease it to a few seconds.
+  o Section Expire -- it sets how often the documents should be checked to see
+    if they have changed.
+  o GatherD.MaxThreads -- Increase to get better performance on multiprocessors.
+
+Initialization
+--------------
+Similarly to shepherd, you have to initialize the database:
+
+  o  Make sure the "db" directory is empty.
+  o  Run "bin/gc -i" and feed the starting set of URL's (usually,
+     your home page is enough, the gatherer will discover everything
+     else by following links) to its standard input. This also sets up
+     the gatherer database.
+     NOTE: gc also accepts URL's in its command line
+  o  (Optional) Run "bin/gatherd" and let the gatherer work for a couple
+     of minutes. In the meantime, watch the gatherer log (log/gatherd*)
+     to see if everything runs well. Then just press Ctrl-C and wait
+     for gatherd to terminate.
+  o  Run "bin/indexer" to build an initial index (which will be empty
+     if you left out the previous step).
+  o  Run "bin/scontrol start" to test sherlockd.
+  o  Run "bin/gcontrol start" to start the gatherer scheduler.  From now
+     on, everything should run automatically.
+
+You can use gcontrol as an init V script, like you would with sched-control if
+you used shepherd.
+
+Also, you use gc instead of shep for manual manipulation with the database.
+
+Internal differences
+--------------------
+There are a few differences between how gatherd and shepherd work. First,
+gatherd must be stopped while the indexer is running, to prevent it from
+changing the database. With shepherd, you can use the remote protocol and keep
+it running.
+
+Second, gatherd computes internally which pages to download. Shepherd does it
+too, but it considers feedback from indexer when calculating the weights.
+
+Also, shepherd in the commercial version is able to work distributed across more
+machines, if the power of a single one is not enough.

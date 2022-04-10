@@ -1,0 +1,32 @@
+How to create your own language detection tables :
+==================================================
+
+1. decide which set of languages you want to recognize and set it in cf/lang,
+   in particular the attributes Lang.Language and
+   LangTables.{No,}AccentLanguages
+2. select a representative set of servers with documents written in these
+   languages; a corpus will be generated from them
+3. set up the filter and starting URL's---you want to only gather documents
+   from these domains and manually assign known languages to them; a good
+   starting example is cf/lang-tables-*
+4. set up a fresh gatherer database
+5. gather a few thousands of documents.  make sure that you have enough
+   documents of each language; if this is not the case, set queue_bonus and use
+   the expirer to change the priorities.
+6. make sure LangTables.Filter points to your filter.  run `./bin/lang-tables
+   -Fa`, and test its output; experiment with the parameters and gatherer
+   database until a good accuracy is achieved
+7. move tmp/lang-coef.log to cf/lang-detect
+8. assign typical languages to top-level domains in cf/gatherer, attribute
+   Charset.DefLang
+9. form a list of accented characters typical for your languages, write it down
+   in the Unicode encoding, and insert it to cf/gatherer, attribute
+   Charset.LangFamily.CTypical; this will help the charset detector
+10. if you want to support morphology, form a text file with all lemmas in the
+    format described at the beginning of lang/stem-dict-gen.c, and run
+      ./bin/stem-dict-gen -c CHARSET -f -ostems.dict <stems.txt
+    if your language has a typical prefix that can be added to its words
+    (such as ne- in Slavic languages), specify it as -pne.  register the new
+    stemmer in cf/lang, attribute Stemmers.Stemmer
+
+Note: if want to add new charset tables too, see doc/charsets

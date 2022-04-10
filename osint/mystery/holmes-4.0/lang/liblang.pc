@@ -1,0 +1,11 @@
+# pkg-config metadata for liblang
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: liblang
+Description: Natural language support functions
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -llang
+Requires: @DEPS@

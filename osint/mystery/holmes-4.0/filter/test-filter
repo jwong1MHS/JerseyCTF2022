@@ -1,0 +1,195 @@
+int aaa,bbb;
+log aaa;
+string sss;
+regexp reg;
+bbb=13;
+sss="0x16";
+aaa = bbb+1+toint(sss);
+bbb = bbb^2;
+debug aaa;
+
+log standardize_domain(".www.a.cz");
+log standardize_domain("cosi.a.cz");
+
+log has_repeated_component("http://a.a.a.a.a.cz/win/iso/kam/win/iso/kam/win/iso/kam/win/iso/kam/win/iso/kam/win/iso/kam/index.html");
+log has_repeated_component("https://a.cz/sdf/sdf?a=b&a=b&a=b&a=b");
+
+if conf[a.b] == 3 || conf[a.b] == "a"
+{
+	error "strange";
+} undef {
+	conf[a.b] = 1;
+	conf[a.b] = "1";
+	error "unknown config OK: ".conf[a.b];
+}
+log has_repeated_component("hello");
+reg = ~~"a.*b";
+if "acB" !~ reg || "acB" !~~ "a.*b" || "acB" !~ ~~"a.*b"
+{
+	log "wrong1";
+}
+reg = ~"a.*b";
+if "acB" =~ reg
+{
+	log "wrong2";
+}
+reg = ~~"^(.)b(.*)b(.*)$";
+log "should be lbecc-a (d): ".replace("ablbeccBd",reg,"\2-\1 (\3)","??");
+log "should be abcdef: ".replace("axlbeccBd",reg,"\2-\1 (\3)","abcdef");
+
+x = 1/0;
+log x/2;
+if !defined(x)
+{
+	log "x is really undefined";
+}
+log sss;
+
+debug "Starting filter number" . 1;
+if attr["."] < toint(attr[x]) || (11<1 && x!=x+1) {
+	reject "small attribute " . attr["."] . " < " . attr["x"];
+} else {
+	log 1;
+} undef {
+	log "undefined";
+}
+
+/*unknown = "aa";*/
+error "Config = " . conf[ftest.num];
+switch conf[ftest.str] {
+case === "test":
+	x = 1;
+	s1 = "" . y;
+case =* "*.cz", =** "*.com":
+	x = 2+3*y^2;
+case =* "*.sk":
+	x = -y-y;
+	x = x/1;
+	add attr["."] = 1;
+	add attr[x] = "2";
+	add attr[x] = "".3;
+case =~ "^[ab]*a.*$":
+	x = y;
+} else {
+	log "none of the cases happened";
+	add attr["."] = 1;
+	add attr[x] = "2a";
+	add attr[x] = "".3;
+} undef {
+	log "conf[ftest.str] undefined";
+}
+
+if defined(s1 == s2) && true != false && !defined(undefined != false)
+{
+	log "OK";
+}
+log 1+2*3^2^2;
+switch 10^4 {
+case <10:
+	log "<10";
+case <100:
+	log "<100";
+case <10000:
+	log "<10000";
+case >2000:
+	error ">2000";
+} else {
+	log "something else";
+} undef {
+	log "undefined";
+}
+x = 14+x; /*z = 34;*/
+conf[ftest.num] = 123;
+conf[ftest.str] = conf[ftest.str].conf[ftest.str];
+debug "1@#";
+debug z;
+debug "1@#";
+
+{
+	warning "???";
+	{}
+	warning "!!!";
+}
+{}{}{}
+{
+	{{log "1x1x1";}}
+	string a, b, c;
+	a = "axa";
+	{
+		int bb, cc;
+		int bb2;
+		bb = 11;
+		log bb . "a";
+		{
+		}
+		string cc1;
+	}
+	{
+		string bb;
+		bb = "2asd2";
+	}
+}
+int total_nonsense;
+log "TN: ".total_nonsense;
+
+switch "A5"
+{
+case == "1":
+	log 1;
+case == "2":
+	log 2;
+case == "3":
+	log 3;
+case == "4":
+	log 4;
+case == "5":
+	log 5;
+case == "6":
+	log 6;
+case === "a1":
+	log 1;
+case === "a2":
+	log 2;
+case === "a3":
+	log 3;
+case === "a4":
+	log 4;
+case === "a5":
+	log 5;
+case === "a6":
+	log 6;
+}
+
+switch x
+{
+case == 1:
+	if (y != x*x)
+	{
+		z2 = x+y;
+		#z3 = x+y;
+	}
+	else
+	{
+		debug z;
+	}
+case >2:
+	debug z;
+case <-1:
+	switch z
+	{
+		case == 1:
+			error 1;
+		case == 2:
+			warning 2;
+	} else {
+		log 3;
+	} undef {
+		warning z;
+	}
+}
+
+include filter/test-filter2
+include filter/test-filter3
+include filter/test-filter4
+
+accept conf[ftest.str];

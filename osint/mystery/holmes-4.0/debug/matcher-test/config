@@ -1,0 +1,13 @@
+# Debugging configuration for Sherlock, which tries the matcher extensions.
+# Look at sherlock/default.cfg for the meaning of the switches.
+
+Include("customs/bare/config");
+
+Set("CUSTOM_DIR" => "debug/matcher-test");
+
+Set("CONFIG_FILETYPE");
+Set("CONFIG_LANG");
+Set("CONFIG_SPELL");
+
+# Return success
+1;

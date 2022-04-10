@@ -1,0 +1,20 @@
+How to add a charset :
+======================
+
+1. download a mapping of the characters in a new charset to Unicode characters
+   and put it into charset/set/
+2. edit charset/misc/chartable.in, charset/charconv.h (enum charset_id), and
+   charset/setnames.c, and add your newly inserted charset everywhere
+2. download
+      http://www.unicode.org/Public/UNIDATA/UnicodeData.txt
+   and put it into charset/unidata/
+3. cd charset && sh misc/generate
+   this generates new source files and headers files for these charsets; commit
+   these files to your repository
+4. edit cf/gatherer and add your charset to the section Charset, in particular
+   attribute Charset.Charset
+5. if your new charsets are typical for web-pages written in some particular
+   language, add it to LangFamily.AutoSets
+6. if the charset is often mistaken for another one, such as iso-8859-2 vs.
+   windows-1250, add a list of typically mistaken characters to
+   LangFamily.CImprobable

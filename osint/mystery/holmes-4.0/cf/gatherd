@@ -1,0 +1,173 @@
+# Configuration of the gathering daemon and related modules (included by cf/sherlock)
+
+GatherD {
+
+# Where to send the log (default: stderr)
+LogFile			log/gatherd-%Y%m%d
+
+# Maximum size of bucket file in kilobytes (default: 0=unlimited)
+MaxBucketFileSize	0
+
+# If the number of known hosts exceeds this number, the gatherer
+# shuts down automatically (default: 0=unlimited)
+MaxHostCount		0
+
+# Maximal number of running gatherer threads
+MaxThreads		8
+
+# Trace thread execution
+TraceThreads		0
+
+# Minimal delay in seconds between two accesses to the same server
+MinServerDelay		30
+
+# Retry timers for temporary errors (timeouts, DNS failures etc.):
+# <= RecErrLimit errors: retry after RecErrDelay1 seconds
+# <= MaxRecErr errors: retry after RecErrDelay2 seconds
+# > MaxRecErr errors: consider the error permanent
+RecErrLimit		5
+MaxRecErr		20
+RecErrDelay1		300
+RecErrDelay2		4h
+
+# Trace all references (0=off, 1=only forbidden ones, 2=all)
+TraceRefs		0
+
+# Add reference to server root automatically?
+AutoGoRoot		1
+
+# Ignore all references and gather only directly specified files (default=0)
+#IgnoreRefs		1
+
+# Maximum number of URL's per server section (default: unlimited)
+# The soft limit bounds the maximum number of gathered items,
+# the hard one bounds number of URL's in the URLdb.
+#SoftMaxObj		1000
+#HardMaxObj		1000
+
+# Number of pages of queue cache
+QueueCacheSize		64
+
+# Cache sizes for URL and MD5 databases (in pages)
+#URLDbCacheSize		4096
+#MD5DbCacheSize		256
+
+# Maximum time in seconds a subprocess is allowed to run (must be <=1000000)
+MaxRunTime		600
+
+# Dump full document contents to objects (for debugging)
+DumpFullObjs		0
+
+# Sync all databases automatically after this number of objects processed
+# (default: 0=don't)
+AutoSync		1
+
+# Maximum number of threads resolving IP addresses simultaneously
+MaxResolvers		4
+
+# Size of hash table for host names and for queue keys
+HostHashSize		16384
+KeyHashSize		16384
+
+# The gatherer lock file
+LockFile		db/GATHERLOCK
+
+# Names of host and queue files
+HostFile		db/hosts
+HostFileBak		db/hosts.bak
+QueueFile		db/queue
+
+# Name of URL database file
+URLDBFile		db/URL.db
+
+# Name of MD5 hash database file (used for early detection of duplicates,
+# undefine if you want to disable the detector; you don't need that unless
+# the pages you scan contain a lot of identical subtrees as the duplicates
+# are handled by the indexer anyway and this only speeds up gathering)
+MD5DBFile		db/MD5.db
+
+# Mixing coefficient for average document change time blending:
+# new = (mix/256)*old + (1-(mix/256))*measured
+DocChangeMix		128
+
+# Gatherd can use a probabilistic data structure for detection of known URL's.
+# It speeds up reference processing significantly at the expense of a small
+# fraction of URL's being incorrectly treated as already known. To enable it,
+# set TricksterErrProb to negative binary logarithm of desired probability
+# of a single error (default: 0=disabled).
+TricksterErrProb	20
+
+# When allocating the aforementioned data structure, leave room for at least
+# TricksterStep more URL's.
+TricksterStep		16384
+
+# When SIGTERM is received, try hard to stop quickly by killing subprocesses
+# (by default, we wait for them to finish). This can lead to orphaned buckets,
+# which is fixed by the expirer automatically and also killed subprocesses
+# are counted as recoverable errors and thus affect retrying.
+HardShutdown		0
+
+# Compress generated buckets (0=no, 1=yes, -1=generate ancient buckets [v3.0])
+Compress		1
+
+}
+
+######## The Expirer ############################################################
+
+Expire {
+
+# Enable expirer tracing (1=verbose, 2=list verdicts, 3=list ID tables)
+Trace			1
+
+# Once an object's age exceeds MinRevalidateAge, the objects enters the
+# revalidation cycle and it's revalidated once per RevalidateCycle seconds.
+# The position on the cycle depends on hash of the URL to get the revalidations
+# distributed evenly. MinRevalidateAge < RevalidateCycle is highly recommended.
+# With RevalidateCycle set to zero, the cycle thing is supressed and every
+# object older than MinRevalidateAge is queued immediately.
+MinRevalidateAge	7d
+RevalidateCycle		14d
+
+# Maximal age of queued object before it gets discarded (seconds; default: unlimited)
+QueueDiscardAge		14d
+
+# Maximal age of error marker before it gets discarded (seconds; default: unlimited)
+ErrorDiscardAge		14d
+
+# Queue keys have to be expired in a different way as we don't store their
+# creation times. Each time the expirer is run, it expires a fraction
+# of the queue keys according to some hash function, so that after
+# approximately QKeyExpireAge seconds, all queue keys are expired.
+QKeyExpireAge		14d
+
+# Maximal age of robots.txt
+RobotExpireAge		14d
+
+# Name of temporary queue file
+TmpQueueFile		db/queue.tmp
+
+# Name of expiration timestamp file
+StampFile		db/expire-stamp
+
+# Put at most this number of objects per host in the queue file,
+# the rest is kept only in the URL database. Set to a number higher
+# than the expected number of pages gathered from one host during
+# one day. (default: unlimited)
+QueuePostpone		2000
+
+# Queue prioritization: each document gets priority equal to:
+#    its age in seconds
+#  + QueueBonusRefresh		if it's scheduled for refresh
+#  + QueueBonusRegather		if it's scheduled for regathering
+#  - QueuePenaltyRetry		per retry after a recoverable error
+#  + per-host bonus set by filter
+QueueBonusRefresh	1000000000
+QueueBonusRegather	2000000000
+QueuePenaltyRetry	43200
+
+# Drawing of an age histogram (optional) with HistNumBoxes+1 boxes
+# (last one for items not fitting anywhere else) per HostBoxWidth sec.
+HistNumBoxes		28
+HistBoxWidth		86400
+
+}

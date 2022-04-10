@@ -1,0 +1,40 @@
+# Example filter for Sherlock Holmes
+
+# Trivial checks for unknown protocols and bogus URL's
+if protocol != "http" { reject "only http allowed"; }
+if port < 30 { reject "suspicious port rejected"; }
+if host =* "%*" { reject "bogus host name"; }
+
+# Reject URL's with username
+if username != "" { reject "authentication not allowed"; }
+
+# Suppress Apache directory listings with non-default sorting mode
+if url =~ ".*/?(N=D|[MSD]=A)" { reject "Apache directory index"; }
+
+# Suppress URL's with too many repeated components
+if has_repeated_component(url) > 0 { reject "vicious circle"; }
+
+# If we are indexing, assign static weights
+if defined(bonus) {
+	regexp root_dir, root_sub_dir, dir_index;
+	string base;
+	int wt;
+
+	root_dir = ~~".*://[^/]*/(|(index|default)\.(htm|html|shtml|php|php3))";
+	root_sub_dir = ~~".*://[^/]*/[^/]*/(|(index|default)\.(htm|html|shtml|php|php3))";
+	dir_index = ~~".*/(|(index|default)\.(htm|html|shtml|php|php3))";
+
+	# These weights get assigned in the scanner and are subject to merging of duplicate objects
+	if url =~~ root_dir { bonus = 50; }
+	elif url =~~ root_sub_dir { bonus = 20; }
+	elif url =~~ dir_index { bonus = 5; }
+}
+
+# Final decision on what to gather
+
+switch host {
+	case =** "*.ucw.cz":
+		accept;
+}
+
+reject;

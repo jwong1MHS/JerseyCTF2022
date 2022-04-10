@@ -1,0 +1,72 @@
+A few coding style rules for Sherlock:
+
+There is no such thing as a global indentation style. Different modules use
+different indentation, depending on the author. Most parts use the usual GNU
+indentation, others use Linux kernel style. When modifying a module, please
+keep the indentation consistent with the rest of the module. Please keep an eye
+on trailing whitespace, there shouldn't be any.
+
+Identifiers generally follow the usual Unix conventions -- we use all lowercase
+names with words separated by underscores. Macros and enum values should
+be all uppercase.
+
+Sherlock is designed to be compiled with GCC 3.0 or newer. C99 and GNU
+extensions can be freely used in appropriate cases, however, if both are
+possible, we prefer C99 constructs.
+
+Currently, Sherlock probably compiles only on Linux and Darwin, but we try to
+minimize OS dependencies to a reasonable minimum.
+
+Nothing should be assumed about the basic C data types except for char being
+exactly 8 bits wide and int being at least 32-bit. For all other stuff, use
+types defined in "ucw/config.h" or C99 types. However, we prefer our own
+integer types (u32 and friends) to C99 ones.
+
+You should also align all basic types naturally, i.e., on a multiple of their
+size (the only exceptions are types with size which is not a power of two,
+these should be aligned to a multiple of the nearest higher power of two).
+If you need to access unaligned data, use the functions in "ucw/unaligned.h"
+and beware of padding in structures (use the PACKED attribute if needed).
+
+Also, standard system functions are assumed to work with 32-bit file sizes
+only. For larger files, use "ucw/lfs.h" and types from "ucw/config.h".
+
+Sherlock's library include "sherlock/sherlock.h" must be the first thing you #include
+in each module as it sets configuration defines for the system library.
+Generally, we include our libraries first and then the system includes.
+In library modules not specific to Sherlock, include "ucw/lib.h" instead.
+
+Every include file should be guarded with a #ifdef against multiple inclusion
+and referred to by a path relative to project root. One possible exception is
+an include local to a small group of modules.
+
+The fastbuf library (see "ucw/fastbuf.h") is generally preferred to stdio,
+because it's much faster and does its own error handling. Fastbuf streams
+are not limited to real files -- they can be used for various forms of
+buffering and other tricks, see the include file.
+
+You should never call malloc() and free() directly. Use xmalloc() and xfree()
+instead and even better use pooled allocation (see "ucw/mempool.h"). For very
+large buffers, use big_alloc() which is guaranteed to be page-aligned.
+
+No program should write directly to stdout/stderr except for errors during
+program startup (invalid arguments and so on) and debugging messages which
+are turned off by default. The logging functions from the library should
+be used instead.
+
+If you define new configuration switches or change compile-time settings,
+don't forget to check that all customization compile (e.g., by running
+debug/check-customs) and that they have reasonable defaults for the
+configuration items. Also, please make sure that the switches are
+correctly filtered by the ucw/filter-autoconf.sed script when the
+public API of the libraries is being built.
+
+Some more hints and caveats:
+
+- Configuration parser automatically allocates all string parameters
+  and also strings passed to CF_PARSER functions.
+- Use cf_malloc() to allocate everything related to configuration, but remember
+  that the configuration pool will go away when you reload configuration.
+- Cspace() and Cblank() accept \n and \r.
+- libgather modules must clean everything up; if cloning any streams,
+  need to make gthis->temp point to the clone if you might call gerror().

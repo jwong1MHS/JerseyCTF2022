@@ -1,0 +1,128 @@
+#!/bin/bash
+#	Script for creating a new runable instance of Sherlock Holmes
+#	(c) 2002, Robert Spalek <robert@ucw.cz>
+set -e
+
+die () {
+	echo $*
+	exit 1
+}
+
+log () {
+	if [ $VERBOSE -ne 0 ]; then
+		echo $*
+	fi
+}
+
+print_help () {
+	if [ $# -gt 0 ]; then
+		echo $*
+	fi
+	echo "Usage: holmes-instantiate [-cuq] <target_directory> [...]
+Options:
+	-c	copy binary files instead of symlinking
+	-u	upgrade current installation (binaries and configuration files)
+	-q	be quiet"
+	exit 1
+}
+
+install_to () {
+	directory=`eval echo $1`
+	if mkdir "$directory" 2>/dev/null; then
+		log "Created directory $directory"
+	fi
+	pushd .
+	cd "$directory" || die "Cannot enter directory $directory"
+
+	if [ $UPGRADE -eq 0 ]; then
+		if [ -e bin -o -e cf ]; then
+			die "Previous installation of Sherlock Holmes found, use -u to upgrade"
+		fi
+		mkdir cf cf.orig
+		cp /etc/holmes/* cf
+		cp /etc/holmes/* cf.orig
+		log "Configuration files copied"
+	else
+		if [ ! -e bin -o ! -e cf ]; then
+			die "Cannot find previous version of Sherlock Holmes"
+		fi
+		if [ ! -d cf.orig ]; then
+			echo "Original configuration files in cf.orig do not exist, please upgrade the configuration manually"
+			mkdir cf.orig
+			cp /etc/holmes/* cf.orig
+			log "New configuration files copied into cf.orig"
+		elif diff -rNU5 cf.orig /etc/holmes >cf.diff; then
+			rm cf.diff
+			log "Configuration files have not been changed"
+		else
+			echo "Configuration files have been upgraded, displaying differences"
+			less cf.diff
+			echo -n "Shall I apply the patch? (y/n) "
+			read answer
+			case $answer in
+				[yY]* | "" ) cd cf
+					patch -p1 <../cf.diff
+					cd ..
+					rm cf.diff
+					rm -r cf.orig
+					mkdir cf.orig
+					cp /etc/holmes/* cf.orig
+					log "Configuration files patched";;
+				* ) log "Ignoring changes in configuration files, differences saved into cf.diff";;
+			esac
+		fi
+		rm -r bin lib doc
+		log "Old program binaries deleted"
+	fi
+	if [ $COPY -eq 0 ]; then
+		ln -s /usr/lib/holmes/bin
+		ln -s /usr/lib/holmes/lib
+		ln -s /usr/share/doc/holmes doc
+		log "Symbolic links to program binaries created"
+	else
+		cp -a /usr/lib/holmes/bin .
+		cp -a /usr/lib/holmes/lib .
+		cp -a /usr/share/doc/holmes doc
+		log "Program binaries copied"
+	fi
+
+	mkdir -p db index index.new lock log tmp
+	log "Directory hierarchy created"
+
+	if [ $UPGRADE -eq 0 ]; then
+		echo "Sherlock Holmes installed into $directory
+To finish Sherlock Holmes configuration, follow at least the following steps:
+- edit cf/local (set HTTP.From)
+- edit cf/filter (add accept rules)
+- run bin/gc -i <starting-urls.txt
+- run either bin/gcontrol start or bin/scheduler
+More detailed description is written in doc/install"
+	else
+		echo "Sherlock Holmes upgraded into $directory"
+	fi
+	popd
+}
+
+COPY=0
+UPGRADE=0
+VERBOSE=1
+DIRS=0
+INSTALLED=0
+for param in `getopt -s bash -o c,u,q,h -- $*`; do
+	case $param in
+		-c ) COPY=1;;
+		-u ) UPGRADE=1;;
+		-q ) VERBOSE=0;;
+		-h ) print_help;;
+		-- ) DIRS=1;;
+		* ) if [ $DIRS -eq 0 ]; then
+			print_help "Unknown parameter" $param
+		else
+			install_to $param
+			INSTALLED=1
+		fi;;
+	esac
+done
+if [ $INSTALLED -eq 0 ]; then
+	print_help
+fi

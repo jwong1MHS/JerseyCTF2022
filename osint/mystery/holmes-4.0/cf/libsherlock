@@ -1,0 +1,141 @@
+# Configuration of Sherlock libraries and related utilities (included by cf/sherlock)
+
+######## Buckets ################################################################
+
+Buckets {
+
+# Default name of the bucket file
+BucketFile		db/objects
+
+# Size of I/O buffer
+BufSize			64K
+
+# Size of shakedown buffer. The largest bucket in the file must fit there.
+ShakeBufSize		2M
+
+# Shakedown security: 0=low (fastest, but system crash can cause loss of some
+# buckets), 1=safe (use a backup buffer of ShakeBufSize bytes on disk, only
+# marginally slower), 2=synchronous (fsync after each block written)
+ShakeSecurity		2
+
+# Size of I/O buffer for reads of the whole bucket file (0=use mmap)
+SlurpBufSize		64K
+
+# Number of bytes to prefetch when reading a random bucket
+PrefetchSize		8K
+
+# Hard limit for the size of the bucket file (should be less than filesystem's limit,
+# default=infinity, 2000G is approximately the limit of ext3)
+MaxSize			2000G
+
+}
+
+######## The filter engine ######################################################
+
+Filter {
+
+# Trace compiling, optimizing, and interpreting filters
+Trace			0
+
+# SWITCH commands with more than HASHLIMIT equality tests of strings (operators == and ===)
+# are optimized using hash-tables. TrieLimit (KMPLimit) is for building tries (KMP automata)
+# for operators =* and =** and TreeLimit is for building binary search trees for
+# operators =# and =##.
+HashLimit		4
+KMPLimit		4
+TrieLimit		4
+TreeLimit		4
+
+# Perform various optimizations when parsing filters (see doc/filter)
+Optimize		1
+
+# If set, the optimized filter is dumped into the given text file
+#DumpFilterTo		tmp/optimized-filter
+
+}
+
+######## Character classes (shared by indexer and sherlockd) ####################
+
+Alphabet {
+
+# Characters can be of the following types:
+#	Space		space separating words
+#	Alpha		alphabetical character forming words
+#	Punct		punctuation separating words
+#	Break		punctuation separating sentences
+#	Singleton	single-character words
+#	Inherit		inherit properties from UniCode categories
+# by default, all characters are of type Space.
+# Format: array of characters, unicode values, and/or unicode ranges
+
+Inherit			0000-02AF 0400-052F FB00-FB06
+Singleton		@ & + 00A7
+Break			. ? !
+Alpha			0023
+
+}
+
+######## Data dumpers ###########################################################
+# (idxdump, objdump etc.)
+
+Dumper {
+
+# Charset using for output on terminal (default: utf-8)
+TerminalCharset         iso-8859-2
+
+# Width of terminal (X attributes are formatted to this right margin)
+TerminalWidth		78
+
+}
+
+######## Shcp -- the file copying utility #######################################
+
+Shcp {
+
+# Command to invoke a ssh client
+SshProgram		ssh
+
+# After connecting to a remote host via ssh, we change the current directory to RunDir
+# and invoke ShcpProgram in client mode.
+RunDir			~/run
+ShcpProgram		bin/shcp
+
+# Buffer size for socket read/write
+SockBufferSize		64K
+
+# Buffer size for file read/write (must be a multiple of SockBufferSize, with DirectFileAccess must be a multiple of 512)
+FileBufferSize		64K
+
+# Higher verbose level
+Trace			0
+
+# Use uncached disk access
+DirectFileAccess	0
+
+# Use file transfer speed limit (in MB/s, 0 = no limit)
+Limit			0
+
+# Header connection timeout (seconds; 0=unlimited)
+HeaderTimeout		60
+
+# Receive timeout (seconds; 0=unlimited)
+Timeout			60
+
+# List of ssh options
+#SshOption		'-A' '-p 22'
+
+}
+
+######## Generation of URL keys #################################################
+
+URLKey {
+
+# Consider http://www.(.*) and http://\1 equivalent. This is a dirty hack which
+# should be used if you remove "www." from URL keys in the filters. Will be
+# replaced by better handling of duplicates in the gatherer.
+WWWHack			1
+
+# Table of equivalent URL prefixes.
+PrefixTable		cf/url-equiv
+
+}

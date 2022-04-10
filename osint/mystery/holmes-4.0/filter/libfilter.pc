@@ -1,0 +1,11 @@
+# pkg-config metadata for libfilter
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libfilter
+Description: Interpreter of the Sherlock filter language
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lfilter
+Requires: @DEPS@

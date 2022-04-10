@@ -1,0 +1,211 @@
+This file is an unsorted heap of various hints which don't fit to any other
+documentation file. Also a sort of FAQ.
+---------------------------------------------------------------------------
+
+General switches
+~~~~~~~~~~~~~~~~
+All programs (including scripts like `indexer') accept these switches:
+
+	-C<file>	Load config file <file> instead of the default
+			cf/sherlock. Must precede all other switches.
+			If used multiple times, the configs are combined,
+			the rightmost one having the highest priority.
+	-S<section>.<var>=<value>  Change configuration variable
+			(executed after loading the config files)
+
+There is a cf/trace config file which includes the default cf/sherlock,
+but enables all tracing options, so -Ccf/trace is very useful if you are
+trying to solve mysteries.
+
+Logfile names
+~~~~~~~~~~~~~
+Names of all log files can contain strftime() conversion specifiers which
+get replaced according to current date and time. But beware, in some cases
+the switching of config files is delayed to avoid splitting related
+entries over multiple files (e.g., the scheduler avoids splitting slots).
+
+Log format
+~~~~~~~~~~
+All modules use a unified log entry format:
+I 2001-09-23 19:33:52 [scheduler] Waiting 98 seconds for end of the cycle
+^ ^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+class  timestamp       program name      the message itself
+
+The classes are:
+
+	D	debugging messages
+	I	informational messages (default class)
+	W	warnings
+	E	errors
+	i,w,e	the same, but caused by events external to Sherlock
+	!	fatal errors (the program has died)
+
+Program names are omitted in case the entry occurs in a log file dedicated
+to that particular program (e.g., gatherd messages in log/gatherd). If there
+are multiple threads, the program name also contains thread PID.
+
+Gatherd log lines
+~~~~~~~~~~~~~~~~~
+Logging of processed documents by gatherd is somewhat obscure, because we want
+to show maximum information possible and at the same time avoid gigabytes of
+disk space wasted by logs. It consists of two types of entries: those generated
+by gatherd subprocesses (they carry a PID instead of program name in the log entry
+description above) and those printed by gatherd itself (they contain no square
+bracket part). Among the latter ones, the most important information are entries
+generated for each URL processed:
+
+I 2001-09-23 19:33:43 http://www.ucw.cz/: 0003 Not modified [4762*] d=13
+
+Read: <class> <timestamp> <URL>: <status-code> <message> "["<pid><refresh><flag>"]" d=<delay>
+
+status-code	object status code as defined in doc/objects
+pid		PID of the thread which was processing the URL (so that you can
+		match log entries by that thread with the particular URL)
+refresh		"*" if we were refreshing the URL, "" if no previous contents
+		were available
+flag		"+" if a new version of the document (or an error marker)
+		has been stored, "=" if not changed since last version,
+		"!" if it's a duplicate
+delay		how long did the URL spend in the queue
+
+How to infer changes in number of gathered documents from the flags:
+
+  flag == "+" or "!"		increment number of documents if status-code
+				says it wasn't an error
+				if refresh == "*", decrement number of documents
+  flag == "=" or ""		leave the number of documents as it is
+
+Gatherd status lines
+~~~~~~~~~~~~~~~~~~~~
+On Linux, gatherd alters the command line displayed by `ps' to show the
+current status of each thread (<status> <URL>). The states are as follows:
+
+	R	resolving
+	D	downloading
+	P	parsing
+	S	storing to bucket file & sending description to gatherd master
+
+Shepherd log lines
+~~~~~~~~~~~~~~~~~~
+Shepherd uses a log format very similar to the gatherd one:
+
+<class> <timestamp> <URL>: <status-code> <message> [<reaper>:<pktid><refresh] t=<timing> q=<qkey>
+
+reaper		ID of the reap daemon which served the request
+pktid		packet ID by which you can match the entry with the reapd's log
+timing		time to process this request [ms]
+qkey		queue key
+
+Also, reapd has the same status lines as gatherd.
+
+Shepherd filtering
+~~~~~~~~~~~~~~~~~~
+In some modules, Shepherd needs to set limits for individual sites. This is
+accomplished by the standard filtering mechanism, but instead of a specific
+URL it gets a generic one of type http://site.name/##. If you set all site-wide
+parameters using patterns matching any URL from the site, you needn't take
+care about this little trick.
+
+Multiplexer log lines
+~~~~~~~~~~~~~~~~~~~~~
+I 2005-12-13 00:05:11 [21181] > +OK sher1 t0:123456 read:0 alloc:0 ans:0 thumb:0 send:0 cache:C-S
+I 2005-12-16 23:06:58 [30902] > +OK s13+s23/s11+s21 t0:818027 read:0 ans:7 send:0 alloc:2 p1:3 p2:4 f:N--:0C+0C/qC+qC dt:A2R0+A2R1/A0R2+A0R4
+
+Read: <class> <timestamp> <pid> ">" <status> <server> [<stat>:<value> ...]
+
+Status:		Status code including leading +/-
+
+Server:		Search servers serving the reply
+		"-" if no server was involved (query cache hits, "muxstatus", parse errors etc.)
+		"s1+s2/s3+s4" if merging from multiple sources (slash separates pass1 and pass2)
+		"s1+s2" if merging and the answer is known after pass1
+		"/s3+s4" if merging and interim cache is used instead of pass1
+
+Stats:		<timing> query timings in ms
+		rtry	number of retries (merge: counts only subquery retries)
+		queue	number of requests waiting for free search servers when this query got its server (merge: max over all allocations)
+		ss	route explicitly chosen by MUXSS
+		f	flags
+		t0	time in msec modulo 10^6 when the request has been received
+		dt	detailed timings (LogRequests>1 only): A<alloc>R<reply>[r<retries>][E<error>]
+
+Timings:	read	reading request			(these add up to the total time spent by the request)
+		ans	obtaining answer, including waiting for free servers
+		thumb	caching image thumbnails
+		send	sending reply
+
+		(these are included in the primary timings)
+		alloc	waiting for free search server (merge: both passes together)
+		p1	(merge: total time for pass1, without alloc delays)
+		p2	(merge: total time for pass2, without alloc delays)
+		retry	time spent by retrying (merge: sum)
+
+Flags:		cached: <query-cache>
+		normal:	<query-cache>:<q>
+		merged:	<query-cache><interim-cache><global-retry>:<q>+<q>/<q>+<q>
+
+		<q> = <route-cache><sherlockd-cache>
+		<global-retry> = "-" or number of retries of the whole merged query if a database disappears
+
+Cache flags:	flag	+-- for which cache types it's used
+		|	|
+		-	QIRS	not applicable
+		N	QIR.	cache bypass requested by the user
+		X	QIR.	request not cacheable
+		0	QIR.	cache miss
+		S	QIR.	found, but too old (stale)
+		C	QI.C	cached
+		?	QI..	corrupted cache entry found
+		w, q	..R.	found word/query, but not using due to high load
+		Q	..R.	hit for full query
+		1..9	..R.	hit for the given number of query words
+
+Search server log lines
+~~~~~~~~~~~~~~~~~~~~~~~
+I 2005-06-10 14:51:03 > 0 t=1394 anal=1.393561 reff=0.000055 refs=0.000028 resf=0.000019 resu=0.000562 wrds:1 phrs:0 near:0 chns:1 chKB:4 send=0.000000
+
+Read: <class> <timestamp> ">" <status> [<timing>=<value>|<stat>:<value>]
+
+Timings:	t	total processing time [ms]
+		anal	query analysis [s]
+		reff	fetching of reference chains [s]
+		refs	processing of reference chains [s]
+		resf	fetching of resulting cards [s]
+		resu	processing of resulting cards [s]
+		send	sending of reply [s]
+
+Stats:		wrds	number of words
+		phrs	number of phrases
+		near	number of near matchers
+		chns	number of reference chains
+		chKB	total length of reference chains [KB]
+
+The checker mode
+~~~~~~~~~~~~~~~~
+Sherlock is also able to work as a web consistency checker, checking broken
+links and other errors and also validating HTML using an external validator
+(I like the one available from the Web Design Group at http://www.htmlhelp.org/
+the most).
+
+Just edit cf/checker* to make it suit your needs and run normal gathering
+with this configuration (add -Ccf/checker to all commands you run); then
+use the `checker' script to summarize the results.
+
+If you don't turn the ignore_text switch on in cf/checker-filter, you can
+use the gathered data for indexing as well.
+
+Load balancing
+~~~~~~~~~~~~~~
+You can easily run multiple search servers, each with its own copy of the
+index and let the front-end balance the load between them. Just call the
+send-index script from cf/timetable and use scontrol instead of gcontrol
+at the search server machines.
+
+Indexing databases
+~~~~~~~~~~~~~~~~~~
+If you want to index contents of a database instead of a collection
+of documents specified by URL's, it's better to write a simple program
+which will bypass the gatherer and generate the objects directly.
+You can find the format of the objects in doc/objects, buckettool -i
+is ideal for putting them to the bucket file. Also the minimal configuration
+in the `customs/bare' directory can be handy.

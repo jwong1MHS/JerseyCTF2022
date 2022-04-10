@@ -1,0 +1,15 @@
+Source: holmes
+Section: text
+Priority: extra
+Maintainer: Robert Spalek <robert@ucw.cz>
+Standards-Version: 3.5.6.1
+Build-Depends: perl, zlib1g-dev
+
+Package: holmes
+Architecture: any
+Depends: perl (>= 5.6), ${shlibs:Depends}
+Suggests: gnuplot
+Description: Universal Search Engine
+ A freely distributable version of the Sherlock Holmes search engine -- a
+ system for gathering and indexing of textual data (text files, web pages,
+ ...), both locally and over the network.

@@ -1,0 +1,24 @@
+# Filter settings for web checking
+
+if (url =~~ "http://(kam|dimatia)\.mff\.cuni\.cz/.*") {
+	# Accept documents in the checked area, but don't store their contents
+	ignore_text = 1;
+	conf[Validate.Validate] = 1;
+	# Our servers can be accessed faster
+	conf[GatherD.MinServerDelay] = 1;
+	# If content type is not going to be parsed, just check existence
+	if (defined(content_type) && content_type != "" && content_type !== "text/html") {
+		conf[Gather.MaxObjSize] = 0;
+	}
+	accept;
+} elif (path == "/robots.txt") {
+	# Always honor robots.txt and process normally
+	accept;
+} else {
+	# Download other documents to ensure links point to the right
+	# place, but don't process them.
+	ignore_links = 1;
+	ignore_text = 1;
+	conf[Gather.MaxObjSize] = 0;
+	accept;
+}

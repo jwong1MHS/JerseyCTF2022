@@ -1,0 +1,66 @@
+#!/usr/bin/make -f
+# Rules for building of Sherlock Holmes Debian/text Package
+# (c) 1999 Martin Mares <mj@ucw.cz>
+# (c) 2002--2006 Robert Spalek <robert@ucw.cz>
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This is the debhelper compatibility version to use.
+export DH_COMPAT=4
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+	$(MAKE)
+	touch build-stamp
+
+clean:
+	dh_testdir
+	#dh_testroot
+	rm -f build-stamp
+	$(MAKE) distclean
+	dh_clean
+
+binary-indep: build
+
+binary-arch: build
+	dh_testdir
+	#dh_testroot
+	dh_clean -k
+	dh_installdirs etc/holmes usr/lib/holmes/bin usr/lib/holmes/lib usr/bin
+	dh_installdirs usr/lib/perl5/Sherlock usr/lib/holmes/front-end
+
+	install -m 644 run/cf/* debian/holmes/etc/holmes
+	install -m 755 run/bin/* debian/holmes/usr/lib/holmes/bin
+	install -m 755 run/lib/*.s[ho] debian/holmes/usr/lib/holmes/lib
+	install -m 755 debian/holmes-instantiate debian/holmes/usr/bin
+	install -m 644 run/lib/perl5/Sherlock/* debian/holmes/usr/lib/perl5/Sherlock
+	install -m 755 free/front-end/* debian/holmes/usr/lib/holmes/front-end
+
+	dh_installdocs doc/* README
+#	dh_installexamples
+#	dh_installmenu
+#	dh_installinit
+#	dh_installcron
+#	dh_installmanpages
+	dh_undocumented holmes.1
+	dh_installchangelogs
+	dh_strip
+#	dh_compress
+	dh_fixperms
+#	dh_suidregister
+	dh_installdeb
+	dh_shlibdeps
+#	db_makeshlibs
+	dh_gencontrol
+#	dh_makeshlibs
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+
+get-orig-source:
+	lynx -source http://www.ucw.cz/holmes/download/holmes-latest.deb
+
+.PHONY: build clean binary-indep binary-arch binary get-orig-source

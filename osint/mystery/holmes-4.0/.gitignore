@@ -1,0 +1,8 @@
+custom
+run
+obj
+charset/unidata
+TAGS
+*~
+_*
+.make.log

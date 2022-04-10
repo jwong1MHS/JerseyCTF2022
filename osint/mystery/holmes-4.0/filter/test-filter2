@@ -1,0 +1,109 @@
+switch "sd fjksjdf kjlksjdf"
+{
+	case =* "*":
+		log 0;
+	case =* "**":
+		log -1;
+	case =* "??":
+		log -2;
+	case =** "":
+		log -3;
+	case =** " ":
+		log -4;
+	case =* "abc*":
+		log 1;
+	case =* "abc**":
+		log 11;
+	case =* "abc***":
+		log 111;
+	case =* "abc****":
+		log 1111;
+	case =* "abcd*":
+		log 2;
+	case =* "abcde*":
+		log 3;
+	case =* "abbde*":
+		log 4;
+	case =* "Abc*":
+		log 5;
+	case =* "abce*":
+		log 6;
+	case =* "*cda":
+		log 11;
+	case =* "*dcba":
+		log 12;
+	case =* "*edcba":
+		log 13;
+	case =* "*edbba":
+		log 14;
+	case =* "*cbA":
+		log 15;
+	case =* "*ecba":
+		log 16;
+	case =* "a*a":
+		log 21;
+	case =* "ab*ab":
+		log 22;
+	case =* "a?a":
+		log 31;
+	case =* "ab?ab":
+		log 32;
+	case =* "a*a*a":
+		log 41;
+	case =* "a*a?":
+		log 42;
+	case =** "aBc*":
+		log 101;
+	case =** "abCD*":
+		log 102;
+	case =** "Abcde*":
+		log 103;
+	case =** "abBde*":
+		log 104;
+	case =** "Abc*":
+		log 105;
+	case =** "abce*":
+		log 106;
+	case =** "*cda":
+		log 1011;
+	case =** "*dcba":
+		log 1012;
+	case =** "*edcba":
+		log 1013;
+	case =** "*edbba":
+		log 1014;
+	case =** "*cbA":
+		log 1015;
+	case =** "*ecBa":
+		log 1016;
+	case =** "a*a":
+		log 1021;
+	case =** "ab*AB":
+		log 1022;
+	case =** "a?a":
+		log 1031;
+	case =** "aB?Ab":
+		log 1032;
+	case =** "a*a*A":
+		log 1041;
+	case =** "a*a?":
+		log 42;
+	case =* "akasjd":
+		log 2001;
+	case =** "aKasjD":
+		log 2002;
+	case =** "z":
+		log 4001;
+	case =** "zx":
+		log 4002;
+	case =** "zxz":
+		log 4003;
+	case =** "zxzx":
+		log 4004;
+	case =* "yaasdh":
+		log 5001;
+	case =* "yabfdg":
+		log 5002;
+	case =* "yabfdh":
+		log 5003;
+}

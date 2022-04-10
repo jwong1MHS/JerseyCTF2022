@@ -1,0 +1,35 @@
+Using Sherlock libraries in other projects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sherlock comes with several libraries which can be useful in other
+projects:
+
+	libucw		Various utility functions and data structures
+	libsh		Sherlock's object system, interface to Sherlock
+			search servers etc.
+	libcharset	Character set conversion routines
+	liblang		Handling of natural languages: detection, stemming etc.
+	libimages	Loading and saving of images in different formats and basic
+			operations on them (e.g., scaling, colorspace conversion)
+
+There are four possibilities how to use them:
+
+(1) Build the `customs/libsonly' customization of Sherlock, which installs the
+libraries to `run/lib', include files with the API in `run/include'. Then you can
+just point PKG_CONFIG_PATH to `run/lib/pkgconfig' and ask pkg-config for --cflags
+and --libs for the desired libraries.
+
+(1') Do the same with the stand-alone release of Sherlock libraries (holmes-libs),
+which does not use any customizations. Just run `./configure && make'.
+
+You can find such an example in free/libs/examples/external.
+
+(2) Copy the sources of the libraries and the `build' directory to your source
+tree and use the libucw Makefile system to compile not only them, but also your
+code. This is probably the better way for large projects.
+
+An example of this can be found in free/libs/examples/internal.
+
+(3) Use a stand-alone release of libraries and also the build system included
+in them.
+
+You will found the right incantations in free/libs/examples/external-ucw-build.

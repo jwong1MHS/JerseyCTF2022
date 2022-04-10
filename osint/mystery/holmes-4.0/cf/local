@@ -1,0 +1,65 @@
+# Local configuration file, included at the end of cf/sherlock
+# Please add your modifications here.
+# Do not forget to set also cf/filter, otherwise all documents are rejected!
+# Also, please note that all configuration variables must contain a section name,
+# either as in `Section.Var value' or `Section { Var value ; }'.
+
+# You have to set the following attribute, otherwise the gatherer refuses to work
+#HTTP.From			set-your-email-address-here
+
+#ifdef CONFIG_SHEPHERD
+# You can get notifications about errors and successfull runs of gatherer
+#ShepMaster.ErrorMail		error@email
+#ShepMaster.ProgressMail	progress@email
+
+# If you want to just start playing with your own server, the following setting
+# might be useful
+#ShepherD.MinServerDelay		0
+#ShepherD.StdServerDelay		1
+#ShepherD.AutoReplyDelay		0
+
+# How often documents are checked for changes
+ShepherD.RefreshCycle		600
+ShepherD.AnticipatedRefreshAge	300
+
+# Cyclus of the downloader plan
+ShepherD.ReapCycle	30
+ShepherD.NullCycle	10
+
+# If you want to keep more documents from single site
+#ShepherD.PerSiteLimit		10000
+
+# If you want indexer to give feedback to gatherer, it is easily done with indexer
+# source remote (see indexer -u)
+Indexer.Source			remote:localhost
+# Or, if you do not want the feedback, you should increase number of documents for
+# site without feedback
+#ShepherD.SiteFreshLimit		10000
+
+# Disk space
+ShepMaster.WorkSpace		100M
+ShepMaster.MinFreeSpace		100M
+#else
+# If you want to just start playing with your own server, the following setting
+# might be useful
+#GatherD.MinServerDelay         1
+
+# If you want to refresh your documents more often, change the following
+#Expire.MinRevalidateAge        1d
+#Expire.RevalidateCycle         2d
+#endif
+
+# If you see strange characters in dump-card, idxdump, etc., set the charset
+#Dumper.TerminalCharset		utf-8
+
+# If you want to access your search server remotely, allow your IP-address here
+#Search.Allow			1.2.3.4
+# You can change the port of the search server here
+#Search.Port			8192
+
+# If you have a lot of memory, the following settings will speed the programs up
+#Buckets.ShakeBufSize		128M
+#Sorter.SortBuffer		128M
+#Chewer.WordBufSize		64M
+#Chewer.StringBufSize		32M
+#Indexer.FileBufSize		1M

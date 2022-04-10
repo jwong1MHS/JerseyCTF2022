@@ -1,0 +1,392 @@
+# Configuration of the search server (included by cf/sherlock)
+
+Search {
+
+### Daemon settings
+
+# Name of log file (if not specified, stderr is used)
+LogFile			log/sherlockd-%Y%m%d
+
+# Name of status file (sherlockd writes it when it starts accepting queries)
+StatusFile		lock/sherlockd.status
+
+# Log incoming and rejected connections
+LogIncoming		0
+LogRejected		0
+
+# Log requests
+LogRequests		1
+
+# Log replies (0=off, 1=short, 2=verbose)
+LogReplies		1
+
+# Port we listen on
+Port			8192
+
+# This enables a so called "hydra mode" in which the search server runs a given number
+# of child processes on the same data, listening on ports Port, Port+1, ...
+# It is just a temporary hack to make sherlockd use multiple CPU's on SMP systems.
+#HydraProcesses		2
+
+# Each process can run a number of threads processing different slices of a single
+# index in parallel. This sets a limit on the number of threads. (default: 1)
+SliceThreads		1
+
+# Maximal number of connections on listen queue (max. is OS dependent)
+ListenQueue		32
+
+# Access list (IP addresses only). See Gather.AccessIP for details on access lists.
+# Format: Access	{ Mode=(allow|deny); IP=1.2.3.4/5 }
+Access			allow 127.0.0.1
+# hardcoded last rule is deny 0.0.0.0/0
+
+# Incoming connection idle timeout in seconds
+ConnTimeOut		60
+
+# Password for control functions
+ControlPassword		FooBar
+
+# Number of cached replies (must be non-zero)
+CacheSize		10
+
+# If query processing takes more than this number of seconds, the search
+# server considers itself (dead|live)locked and dies. (default: 0=off)
+QueryWatchdog		60
+
+# Maximum size of memory mapped references (in MB)
+MemMapZone		16
+
+# If two mappings are closer than this number of bytes, merge them
+MemMapElideGaps		16K
+
+# If the mappings are smaller than this number of MB, prefetch them
+MemMapPrefetch		4
+
+# Number of threads used for parallel reading of cards. (default: 0=use mmap instead)
+FetchThreads		10
+
+# Log all fetches from disk (useful for benchmarking)
+LogFetches		0
+
+# A list of databases we search in
+Database {
+	# Name of the database
+	Name		main
+
+	# Directory containing the index
+	Directory	index
+
+	# Which parts of the index will we use:
+	#       words           	the word index
+	#       strings         	the string index
+	#       prints          	card fingerprints (used for unification of multiple indices)
+	#	image-signatures	image signatures (support for similar images)
+	# Format: bitmap of (words|strings|prints|image-signatures)
+	Parts		words strings
+
+#ifndef CONFIG_BARE
+	# Points per word, string and meta types (see custom.h for a list), subject to scaling
+	# by WordWeightScale. For meta types, up to four entries can be specified, which
+	# correspond to the four possible subtypes.
+	# String types have no position info, so we need to compensate for BlindPenalty here.
+	# Format: section with numeric attributes named after (word|meta|string) types
+	WordWeights	{ text=20; emph=50; small=10; hdr1=50; hdr2=80; alt=10; }
+	MetaWeights	{ title=100 50; urlword=50 80 150 200; file=10 20 20; ext=80; }
+	StringWeights	{ ref=10; URL=10; host=10; domain=10; ip=10; }
+#endif
+
+	# If the search server shouldn't complain when the database is missing
+	#IsOptional             1
+
+	# Array of file names with blacklists. See Indexer.Blacklist for details.
+	#Blacklists		blacklist
+}
+
+### Limits
+
+# By default, we find NumMatches best matching documents and cache them.
+# If the query asks us for more, we are willing to produce up to MaxMatches of them.
+NumMatches		100
+MaxMatches		1000
+
+# Maximum number of objects output (default: unlimited)
+MaxOutputObjects	100
+
+# Maximal number of unique words in the expression (including word complexes)
+# Hard maximum is HARD_MAX_WORDS in search/sherlockd.h
+MaxWords		32
+
+# The same for phrases (including automatic near-matchers)
+MaxPhrases		8
+
+# Maximal number of boolean expression elements (beware, hard maximum
+# is 31 and space complexity of boolean expression processing is
+# exponential in the number of elements used)
+MaxBools		16
+
+# Maximal number of real words matching a single word in the expression
+# (there can be multiple ones due to wildcards and pattern matching)
+MaxWordMatches		256
+
+# Nonzero enables wildcards (asterisks and/or question marks) in queries
+WildcardAsterisks	1
+WildcardQMarks		0
+
+# Maximum number of lexicon entries to match for wildcards
+MaxWildcardZone		64K
+
+# Minimum size of non-wildcard prefix in wildcard search
+MinWildcardPrefix	1
+
+### Query parameters (many of them can be overriden in a query, see doc/search)
+
+# Debugging flags [DEBUG in query] (see doc/search for a list)
+Debug			0
+
+# Maximum number of context chars to show [CONTEXT in query]
+ContextChars		240
+
+# Maximum number of meta-type chars to show [METALEN[i] in query]
+# Format: section with numeric attributes named after meta types
+# Default is maximum of defined meta-types or infinity if there is no one
+#MetaChars		{ title=60; keywd=240; }
+
+# Maximum number of printed context intervals [INTERVALS in query]
+Intervals		4
+
+# Highlight matching substrings in URL's of length at least the following (0=disabled)
+HighlightSubstring	2
+
+# A list of attribute letters (besides Uyb) that contain URL's and should be
+# dumped with higlighted substrings
+URLAttributes		""
+
+# Maximum number of results per site [SITEMAX in query] (default=0=unlimited)
+SiteMax			0
+
+# Maximum number of URL's to show for single card [URLMAX in query] (default=unlimited)
+#URLMax			1
+
+# Maximum number of redirect brackets (y) and catalog brackets (c) shown
+# for a single URL (default=unlimited)
+MaxRedirectBrackets	8
+MaxCatalogBrackets	8
+
+# Error recovery options. Hard errors (e.g., syntax errors in the query) always
+# cause the query to be rejected, processing of soft errors (non-indexed words,
+# wildcard expansion too large etc.) depends on these switches: if AllowApprox
+# is turned on, they are just reported as word status codes, else if PartialAnswers
+# are turned on, they cause only a lookup in a single database to fail with
+# a local error message; if both are turned off, the query is rejected.
+# These options can be overriden for a single query by APPROX and PARTIAL.
+AllowApprox		0
+PartialAnswers		0
+
+# Default accent mode [ACCENT in query]:
+# 3 (auto2) = same as auto, but done separately for each word
+# 2 (strict) = require accents to match
+# 1 (ignore) = ignore accents completely
+# 0 (auto) = if query contains no accents, ignore accents,
+#            else match accents in accented documents and ignore otherwise
+AccentMode		0
+
+# Enable morphing of words [MORPH in query]: for each word in the query, automatically
+# add its stem and other morphological variants, but with a slight penalty. If set to 2,
+# differently accented versions of these variants are added as well according to AccentMode.
+Morphing		2
+
+# Enable spelling checker and set the number of variants to find [SPELL in query] (max. 16)
+Spelling		4
+
+# Enable searching for synonyma [SYN in query]
+# 0=off, 1=only list, 2=search, 3=also accents, 4=morph according to MORPH setting
+Synonyming		0
+
+# Which synonymic variants are automatically added to the query when SYN >= 2 [SYNEXP in query]
+# a bit map, bit 31 controls variants with id>=31.
+#SynExpand              0xffffffff
+
+# Secondary sorting criterion on Q ties [SORTBY in query] (default: SITE)
+# Format: attribute or -attribute (for desceding order)
+DefaultSortBy		SITE
+
+# A bitmap of word-, meta-, and string-types used when no type is specified in
+# the query.  If DefaultStringTypes are nonempty, DefaultWordTypes and
+# DefaultMetaTypes must both be empty.
+# Format: bitmap of (word|meta|string) types
+DefaultWordTypes:all
+DefaultMetaTypes:all
+DefaultStringTypes:clear
+
+### Spelling checker parameters (all frequencies are logarithmic scaled to 0..255)
+
+# Too short words are not checked
+SpellMinLen		3
+
+# Words with this or greater frequency are considered correct and not checked
+SpellGoodFreq		128
+
+# Only variants with frequency greater by at least SpellMargin are considered
+SpellMargin		30
+
+# If the original word has frequency < SpellDwarf and no matches are found
+# with the default margin, use SpellDwarfMargin instead.
+SpellDwarf		5
+SpellDwarfMargin	1
+
+# When sorting spelling checker output, we calculate similarity points
+# by taking 100*frequency - sum of penalties for all types of differences:
+# adding/deleting/changing a single character, transposing two characters,
+# changing accents.
+SpellAddPenalty		3000
+SpellDelPenalty		3000
+SpellModPenalty		2000
+SpellXPosPenalty	0
+SpellAccentPenalty	300
+
+# Common letter changes: they get SpellCommonPenalty instead of SpellModPenalty;
+# always considered without accents.
+# List format: SpellCommonPairs	{ X=letter; Y=letter }
+SpellCommonPairs	y i	s z	d t
+SpellCommonPenalty	500
+
+# Custom phrase changes; always considered without accents.
+# List format: SpellPhrases { Src=string; Dest=string; Penalty=uns }
+#SpellPhrases		z rz 500	rz z 500
+
+# Spelling typos caused by a wrong keybord layout. 
+# It only works in the unaccented mode.
+# List format: SpellKBTranslations { Penalty=int; Pairs { X=letter; Y=letter } }
+#SpellKBTranslations	3000	2 ě  3 š  4 č  5 ř  6 ž  7 ý  8 á  9 í  0 é
+
+### Calculating quality of matches (Q)
+
+# Default points per word occurence
+WordBonus		10000
+
+# Conversion of document weights to Q
+DocWeightScale		10
+
+# Conversion of word weights and penalties to Q
+WordWeightScale		10
+
+# Words matched, but lacking a full position get this penalty
+BlindMatchPenalty	10
+
+# Words with mismatched accents in accent mode 0 get this penalty
+MisaccentPenalty	5
+
+# The second best word score gets divided by this factor
+SecondBestReduce	8
+
+# Morphological variants get MorphPenalty, stem gets StemPenalty instead
+StemPenalty		60
+MorphPenalty		90
+
+# Synonyma get this penalty
+SynonymumPenalty	80
+
+# When doing proximity matching, this much Q units are paid for each word position skipped
+ProxPenalty		1000
+
+# If the total weight of all words in a phrase minus all the penalties paid
+# is less than this limit, the match is ignored.
+ProxLimit		-5000
+
+### Magic operations
+
+# Try to find complexes across different components of simple search queries
+MagicComplexes		1
+
+# Try to merge the whole simple query to a single word, but restrict its class
+#MagicMergeWords	1
+# Format: bitmap of meta types
+#MagicMergeMetaTypes	urlword
+#MagicMergeBonus	1000
+
+# Try to merge the whole simple query to a single string (restricted to some classes)
+# and match it with strings of given types. Words in the string are separated by spaces.
+MagicKeyphrases		0
+# Mask of word classes allowed in simple query to generate the string
+# Format: bitmap of (meta|string) types
+#MagicKeyphrasesMetaTypes	ckwa
+# Mask of matched string types
+#MagicKeyphrasesStringTypes	ckpa
+# Bonus for each match
+#MagicKeyphrasesBonus	1000
+
+# Try to add near matching for the whole simple query, but at most
+# for this number of words (0=off)
+MagicNear		4
+
+# Create at most MaxNears near-matchers per query
+MaxNears		2
+
+# When doing automatic near matches, we add NearBonusWord points per
+# word and subtract NearPenaltyGap per inter-word gap.
+# If the word is adjacent in the query with the previous seen word,
+# we add NearBonusConnect points more.
+# All these constants are finally scaled by the average word's weight
+# limited to interval [NearMinWeight, NearMaxWeight].
+NearBonusWord		60
+NearPenaltyGap		37
+NearBonusConnect	22
+NearMinWeight		5
+NearMaxWeight		50
+
+# Allow at most MaxImageSims IMAGESIM tokens in single query
+MaxImageSims		2
+
+# Maximum IMAGESIM weight
+ImageSimMaxWeight	10000
+
+# Defines how quickly IMAGESIM weights decrease when increasing the distance.
+ImageSimSlope		40000
+
+# Replace at least this number of repeated non-alphanumeric characters with a space (default=infinity)
+#FilterRepeatedNonAlpha	5
+
+# Replace words with at least this number of repeated characters with a space (default=infinity)
+#FilterRepeatedAlpha	10
+
+}
+
+######## Search server control script and keeper ################################
+
+SKeeper {
+
+# Number of retries when testing whether the daemon started responding to queries
+TestRetry		180
+
+# Delay in seconds between two retries
+TestWait		1
+
+# If the daemon comes up, make sure it really works by running this
+# set of queries (the number at the start of the query are minimum
+# numbers of responses)
+#TestQuery		0 '"linux"'
+#TestQuery		0 '"martin"'
+
+# The daemon can be watched by a script called skeeper which restarts
+# it in case of crash and notifies administrators by mail. Comment out
+# Crash* if you don't want to run skeeper. You can use multiple mail
+# addresses separated by spaces.
+#CrashMail		somebody@example.net
+
+# Timing of restarts: if sherlockd ran for less than CrashWaitThreshold
+# seconds and the timeout was at most CrashWaitCeiling, double the timeout.
+#CrashWaitThreshold	60
+#CrashWaitCeiling	300
+
+# Command for rotation of logs (comment out to disable rotation), see utils/rotate-log.pl
+#RotateLogs		"bin/rotate-log 1 14 log/sherlockd-* >/dev/null"
+
+# Files to store the process ID's in
+DaemonPIDFile		lock/sherlockd.pid
+KeeperPIDFile		lock/skeeper.pid
+
+# Lock file used for index swaps and its timeout in seconds
+SwapLock		lock/swaplock
+SwapLockTimeout		10
+
+}

@@ -1,0 +1,11 @@
+# pkg-config metadata for libparse
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libparse
+Description: Sherlock file format parsers
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lparse -lm -lz
+Requires: @DEPS@

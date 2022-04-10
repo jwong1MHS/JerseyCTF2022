@@ -1,0 +1,317 @@
+Sherlock Search Engine Interface
+********************************
+
+The protocol is very simple: connect to a TCP port defined in the configuration
+file, send a single line of query and receive a reply followed by a connection
+close.
+
+Query Language
+~~~~~~~~~~~~~~
+query = [mux-option*] selector global-option* (expr | CONTROL "command")
+
+selector =
+   LIST [set]				list matches (only attributes "BOQTlmnw")
+ | SHOW [set]				show matches
+ | STATS				show only statistics, no matches
+ | DUMP dump-list			show matches previously reported by LIST (attributes "Qm" excluded)
+ | <empty>				equivalent to SHOW 1..max
+
+global-option =
+   DEBUG num				set debugging message mask (see below for list of flags)
+ | CONTEXT n				ContextChars (per-query values of config switches; see cf/sherlock for description)
+ | CONTEXT FULL				show as much context as possible
+ | METALEN { type-list } n		MetaChars[i]
+ | INTERVALS n				Intervals
+ | SITEMAX n				SiteMax
+ | PARTIAL n				PartialAnswer
+ | APPROX n				AllowApprox
+ | URLS n				ShowURLs
+ | DB "name" [#version] [,...]		select databases to search in
+ | SITE "name"				search only in the site with the given name
+ | SITE #hash				search only in the site with the given hash
+ | EXPLAIN #oid				explain matching of a given document
+ | <attr> (<|>|=|<=|>=|<>) value	matching of attributes (<> works only with set-matched attributes)
+ | <attr> (=|<>) { set }		set matching of attributes (not all attributes support it, when in doubt, consult index.h and custom.h)
+ | SORTBY [-] (<attr> | SITE | CARDID)	sort by given attribute on Q ties, reverse if "-"
+ | SORTBY ... ONLY			sort only by given attribute, don't calculate Q
+ | local-option				default value of a local option
+
+local-option =
+   ACCENTS n				AccentMode
+ | MORPH n				Morphing
+ | SPELL n				Spelling
+ | SYN n				Synonyming
+ | SYNEXP { set }			expand synonymic variants specified by their numbers
+ | '/' weight				word weight
+ | TYPES { type-list }			word types (used for words which have no own type-list)
+
+attr =
+   <custom-attribute>			custom attributes as defined in custom.h
+   AGE					document age in seconds
+   FILETYPE				file type (values are either type names or numeric type ID's)
+   LANG					document language (values are either language codes or numeric language ID's)
+   AREA					index area (requires CONFIG_AREAS)
+
+expr =
+   molecule
+ | expr AND expr			usual boolean operators
+ | expr OR expr
+
+molecule =
+   NOT* ( expr ) local-option*
+ | NOT* ANY				matches any document
+ | atom
+ | atom . atom . ...			simple search expression
+
+atom =
+   (NOT* | MAYBE) [type-list] "word-or-phrase" local-option*
+
+type-list =
+   <empty>				use DefaultWordTypes
+ | (word-type | meta-type | string-type ) [, ...]
+
+set = range [, ...]
+range = value | value '..' value
+
+value =					attributes can have various values ...
+   "string"				some are strings
+ | number				some are numbers
+ | { set }				some are sets of strings/numbers
+
+dump-list = [dbid :] #id [, ...]	where dbid=0 selects the first database mentioned by the DB option and so on
+
+Reply Format
+~~~~~~~~~~~~
+reply = status header \n (card \n)+ ("+\n" footer)? "+++\n"
+
+status:
++code reply		Positive reply
+-code reply		Negative reply (fatal error)
+			In case of an error, all other parts of the reply may be missing
+
+header:
+<mux-hdr-attrs>		Attributes added by the multiplexer (if any)
+<server-attrs>		Attributes describing the answering server
+<db-header>		(once for each database we did look for answer in)
+Cage			Cached reply with specified age in seconds
+Nnum			Total number of cards available (number of matching documents, but at most Search.NumMatches)
+mnum			Number of matches suppressed by site compression
+
+db-header:
+(D
+Dname			Results for database <name> follow (this is always the first item)
+Wword refs reflen matches stat key
+			Found <matches> matching words and <refs> references with total size <reflen> KB
+			for input word <word> with status <stat> (0=ok, else error code)
+			(<key>,<word>) uniquely determines the word for purposes of merging
+			word notes in the front-end.
+P"phrase" refs		Found <refs> documents containing <phrase>
+n"near" refs		Found <refs> documents containing near match for <near>
+Tnum			Total number of matching objects
+ttype1=num1 ...		Total number of matching objects for each file type (even counting those not matching the required type if CONFIG_COUNT_ALL_FILETYPES)
+Sright wrong pts	Spelling checker: suggesting word <right> with <pts> similarity points instead of <wrong>
+Ysyn var orig id	Synonymum: <syn> is a synonymum with id <id> for a variant <var> of query word <orig>
+llemma orig		Found lemma <lemma> for word <orig>
+N,I,L,V			Database parameters (see the "databases" control command below)
+-code reply		Error occured during search in this database, but partial answers are enabled
+)
+
+footer:
+ttime			Query processing time in milliseconds
+T...			Detailed timing information (debugging only; format unspecified)
+<mux-ftr-attrs>
+
+server-attrs:
+Vversion		Search server version
+Iid			Search server incarnation (64-bit number changing with every restart)
+
+card: see doc/objects
+X and M are tagged with XML-like tags (see below)
+
+Control commands
+~~~~~~~~~~~~~~~~
+Replies to control commands follow almost the same syntax as normal replies,
+only the header differs and cards can be replaced by other information.
+
+ctrl-header:
+<mux-hdr-attrs>
+<server-attrs>
+^command		Denotes reply to <command>
+
+CONTROL "databases"	Show a list of known databases (each as a separate card)
+
+   db:
+	Dname		Database name
+	Ncards		Number of cards
+	Iobjects	Number of input objects (i.e., cards+dups+redirects+anything thrown away)
+	Ltime		Time (time_t) of last modification
+	Ssize		Database size in kilobytes
+	Wcount		Number of words indexed
+	Ccount		Number of complexes indexed
+	Ucount		Number of strings (URL's and similar stuff) indexed
+	Vversion	Database version (an opaque 32-bit hexadecimal number)
+
+XML-like formatted text
+~~~~~~~~~~~~~~~~~~~~~~~
+
+<text w=%x m=%d e=%d>
+<meta w=%x m=%d e=%d>
+  header of each dumped M- or X-attribute:
+    w = bit array of matched words
+    m = flag whether this attribute alone matches the query
+    e = flag whether the attribute is dumped until the end
+  the body of consists either of the full text or of one or more blocks
+<block c=%d-%d l=%d> ... </block>
+  envelope around one interval of text:
+    c = interval of dumped bytes
+    l = length of the dumped context in printable characters
+<text>, <emph>, <small>, <hdr1>, <hdr2>
+  text style
+<alt>
+  alternative description of an image
+<title>, <keywd>, <meta>
+  title type
+<urlword>, <file>
+  word parsed from URL's of the document
+<ext>
+  external (link) texts
+<ckwu>, <ctitle>, <cdesc>
+  user-edited data from the catalog
+<ckwa>, <csecname>, <cseckw>, <ccity>, <cstreet>
+  administrator-edited data from the catalog
+<best>word</best>
+  the best matched words
+<found>word</found>
+  hilited word
+<break>
+  paragraph break
+<ref id=number> ... </ref>
+  this text is a hyperlink
+[and other word types as defined in the customization]
+
+To simplify the front-end parser, all meta-attributes (denoted by M)
+are guaranteed to fit into one line.  Beware that the length of the
+line can be of order one thousand.  The text of the card (denoted by X)
+is formatted into lines of approximate length 80.  Line-breaks occur
+solely on spaces.
+
+Multiplexer
+~~~~~~~~~~~
+If you connect to the search server through the query multiplexer, you can prefix
+the query by some instructions for the multiplexer:
+
+mux-option =
+   MUXNOCACHE		Avoid caching of answers by the multiplexer
+ | MUXNOROUTE		Avoid intelligent routing by the multiplexer
+ | MUXNOIMGS		Avoid processing and caching of image thumbnails
+ | MUXSS "routing"	Route the query to the specific destination, which can be
+			either a search server or a group
+ | MUX*			All other keywords are reserved for future mux commands
+ | SS n			Obsolete search server selection keyword (ignored)
+
+The multiplexer then adds its own attributes to the answer's header and footer:
+
+mux-hdr-attrs:
+@server-name		Search server which served this request, "mux" if it was
+			generated directly by the multiplexer; omitted for merged replies
+(M			Multiplexer status
+.<note>			Debugging log
+cage			Reply cached in the multiplexer cache, age is in seconds
+Rname			Route used for the whole request
+)
+(S			Server status (for answers merged from multiple servers)
+Rname			Route used for this subrequest
+Dname			Database supplied by this subrequest
+<status-line>		Status of the subreply
+<header-attrs>		Attributes from the header of the subreply
+)
+
+mux-ftr-attrs:
+<none defined yet>
+
+Also, you can send a multiplexer control command instead of the query: (replies
+are in the same format as replies to search server control commands)
+
+MUXSTATUS		Display multiplexer status
+
+Attributes generated by debug switches
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.m	index merging info [mux] (16)
+.n	near-matcher info (2)
+.r	maximum number of matches evaluated for this query (2)
+.s	simple query transform: original query (2)
+.t	simple query transform: after word analysis (2)
+.x	simple query transform: result (2)
+.A	query after analysis pass (2)
+.B	boolean ID assignment (2)
+.C	custom attribute (16)
+.E	explaination (EXPLAIN)
+.F	fetching disk blocks (32)
+.I	initial form of query (2)
+.K	secondary sort key (16)
+.M	morphological expansion (8)
+.N	normalized query (2)
+.O	optimistic version of query (2)
+.P	phrase info (2)
+.R	result note (16)
+.S	query just before analysis (2)
+.T	site compression (16)
+.W	word info (2)
+.U	magic word merges (8)
+.X	various stages of phrase processing (8)
+.Y	synomic expansion (8)
+.Z	spelling checker (8)
+.<SP>	general message
+
+Error Codes
+~~~~~~~~~~~
+000	OK
+001	No matches [sherlockd internal]
+100	Refusing to talk to you
+101	Request too long
+102	Parse error
+103	Too many words
+104	All documents match
+105	Too many word matches
+106	Invalid range of results requested
+107	Input timeout
+108	Read error
+109	Invalid command
+110	Phrase too complex
+111	Pattern too long
+112	Invalid URL
+113	Maximum wildcard zone size exceeded
+114	Wildcard prefix too short
+115	Word too long
+116	Word not indexed
+117	Too many references
+118	Boolean expression too complex (after internal expansions)
+119	Simple search expression contains only non-indexed words
+120	Unknown database <name>
+121	Unknown version <ver> of database <name>
+122	Invalid DUMP request
+123	Negative queries not allowed
+124	Too many IMAGESIMs
+125	Cannot resolve image signature
+200	All search servers are down [mux]
+201	Multiplexer overloaded (MaxChildren reached) [mux]
+202	Timeout or error on read from client connection [mux]
+203	--unused--
+204	All search servers are overloaded [mux]
+205	Search servers failed (even after retrying) [mux]
+206	Timeout or error when sending data to the client [mux, occurs only in logs]
+207	Invalid multiplexer option [mux]
+208	No such search server [mux]
+209	Feature not supported in merging mode [mux]
+210	Internal multiplexer error [mux]
+211	Indices disappearing too quickly [mux]
+290	Search server connection refused [mux internal]
+291	Search server timeout [mux internal]
+292	Search server read/write error [mux internal]
+293	Malformed or missing status line [mux internal]
+294	Malformed reply object [mux internal]
+295	Incomplete reply [mux internal]
+296	Line too long [mux internal]
+297	Unexpected reincarnation [mux internal]
+3xx	Used internally by sherlockd for non-fatal versions of 1xx
+9xx	Reserved for internal use by front-ends

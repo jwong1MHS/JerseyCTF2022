@@ -1,0 +1,390 @@
+# Configuration of the Shepherd gatherer daemon (included by cf/sherlock)
+
+######## General Shepherd settings ##############################################
+
+ShepherD {
+
+# Filtering rules we use everywhere inside Shepherd with the exception of ReapD
+# which uses the usual Gather.Filter (but its input is filtered once more by
+# shep-reap which uses ShepherD.Filter). This allows ReapD's on remote machines
+# to use a very simple set of filtering rules which don't need dynamic updates,
+# while maintaining the full flexibility of the filter system.
+Filter			cf/filter
+
+# Database directories
+DBDir			db
+StateDir		db/state
+
+# Delay between accesses to the same server: by default we use StdServerDelay,
+# but if we have many items to gather, we can be faster up to MinServerDelay.
+StdServerDelay		30
+MinServerDelay		5
+
+# In case the gatherer has obtained a reply without consulting the server (e.g., if the
+# URL was forbidden by robots.txt), we can use a smaller delay:
+AutoReplyDelay		1
+
+# Assume we have a slight overhead in processing of URL's and fire requests
+# this many seconds earlier than according to the server delays. 1s should be enough.
+ServerOvertake		1
+
+# If we encounter a request-level temporary error (e.g., a request timeout or truncated reply),
+# we retry for at most this number of times, each time waiting for the next reap cycle:
+ReqErrRetry		3
+
+# If we encounter a site-level temporary error (e.g., an unresolvable host name), we defer
+# the whole site to the next reap cycle. After SiteErrRetry attempts, we mark the site
+# as permanently bad, flush all entries and remember the state for SiteErrExpire seconds.
+SiteErrRetry		3
+SiteErrExpire		7d
+
+# If we encounter a connection-level temporary error (e.g., connection refused), we count
+# it as a request-level error for the particular request, wait for ConnErrDelay seconds
+# before attempting another connection and if no connection succeeds during the reap
+# cycle, charge it as a site error to all sites belonging to this server.
+ConnErrDelay		60
+
+# Tracing of references
+TraceRefs		0
+
+# Ignore references and gather only directly specified URLs
+# (0=default=follow all links, 1=follow only redirects, 2=ignore all references)
+#IgnoreRefs		1
+
+# Add references to server root automatically?
+AutoGoRoot		1
+
+# Maximum number of simultaneously running resolves and flushes of non-existent sites.
+# Should be kept at a reasonable fraction of the number of ReapD threads available
+# in order to avoid starvation of regular requests.
+MaxResolvers		4
+MaxFlushers		4
+
+# Document stability time is kept as 0..255 times this unit [sec]
+StableTimeUnit		1h
+
+# Memory we are willing to spent on contribution cache (bytes)
+ContribCacheSize	1M
+
+# Contributions get a temporary weight which is the weight of the parent
+# page minus this constant.
+ContribGap		10
+
+# Contributions with no parent (e.g., coming from manual insertion)
+# receive this temporary weight.
+DefaultInsertWeight	100
+
+# How often (in seconds) do we want to refresh the whole database
+RefreshCycle		7d
+
+# If we don't have anything better to do, we are willing to refresh items older
+# than this age (in seconds). Default: infinite.
+AnticipatedRefreshAge	1d
+
+# For how long (in seconds) we let the reaper run
+ReapCycle		5m
+
+# If the reaper has an empty plan, wait for this many seconds
+NullCycle		10
+
+# Estimated raw reaping performance in URL's per second
+EstRawPerformance	10
+
+# When planning a reap cycle, we overcommit the estimated performance by this factor
+ReapOptimism		300%
+
+# When planning reaper timing, choose delays this factor times the estimated optimum
+# (but still restricted by the min and max delay).
+ReapSlowdown		50%
+
+# Limits: They usually have soft and hard part. The soft part limits how many documents of the
+# given type we are willing to gather, the hard one is used for the number of URL's of that type
+# we wish to keep. By default (unless said otherwise or overriden by the filters), the soft limit
+# is configured here and the hard limit is HardLimitFactor times the soft limit.
+HardLimitFactor		500%
+
+# How many documents are we willing to gather from a single site (overriden by soft_limit and hard_limit in the filters)
+PerSiteLimit		1000
+
+# How many documents are we willing to remember for a site which is proven dead (non-existent or unreachable)
+# This setting overrides soft_limit and hard_limit set by filters.
+DeadSiteLimit		5
+
+# How many documents from a single site which don't have their weight computed yet can
+# be active (see fresh_limit in the filters). Low values damp selection oscillations,
+# but also slow down reaction to legitimate new URL's.
+SiteFreshLimit		1000000
+
+# Percentage of time which is actually spent by gathering. The long-term performance
+# is estimated by multiplying EstRawPerformance by the DutyFactor. We are willing to keep
+# as many pages as we are able to refresh in a single RefreshCycle with this performance.
+DutyFactor		50%
+
+# Disk space available for the buckets (excluding other database files and also excluding
+# deleted buckets -- see ShepMaster.WorkSpace). We expect that the average bucket size
+# will be AvgBucketSize bytes for "thick" buckets (containing downloaded data) and
+# AvgURLSize bytes for "thin" ones (containing only the URL). (This gives us another pair
+# of soft and hard limit.)  The shep-cleanup module reports the real averages on the
+# current data, but you need to adjust the configuration manually for now.
+BucketFileSize		1G
+AvgBucketSize		4K
+AvgURLSize		512
+
+# Per section configuration. For each section, you can configure how much space in the
+# bucket file (relative to the available bucket file space, i.e., after excluding spare space)
+# can be used for the particular section at most. Default is 100% and the limits don't need to
+# sum up to 100%. Section can also receive a bonus, which is applied when selecting URLs
+# to keep/download (default=0, recommended bonus=100000).
+# List format:	Section	{ Section=int; Limit=double; SelectBonus=int; }
+Section			0 100% 0
+
+# When selecting URL's, those which have been already gathered have their weight increased
+# by this constant to avoid flapping.
+SelectHysteresis	20
+
+# Percentage of work (global) which we permit to spend on more frequent refreshing.
+GlobalFrequentFactor	30%
+
+# List of refresh schemas for planning frequent refreshes on QKeys.
+# The default schema with Id=0 can be overriden in the filters.
+RefreshSchema {
+# List of refresh frequencies we use (e.g., 3 means `three refreshes per RefreshCycle') together with
+# the respective percentage of work time allocated to each freqency (100% = whole FrequentFactor).
+# The percentages should sum to 100%. Frequencies should be given in decreasing order.
+# At most SHERLOCK_NUM_FREQS entries allowed.
+	List		8 20%  4 40%  2 40%
+# Identifier for filters (at most 255)
+	Id		0
+# Percentage of work (per-qkey) which we permit to spend on more frequent refreshing.
+	FrequentFactor	20%
+}
+#RefreshSchema {
+#	Id		1
+#	List		8 100%
+#	FrequentFactor	50%
+#}
+
+# Minimal refresh frequency of robots.txt (an index in RefreshFrequencies, 0 is the first one)
+MinRobotsFrequency	1
+
+# Minimal refresh frequency of pages used by the equivalence finder (usually root pages) (again an index)
+MinEQFrequency		0
+
+# Maximal refresh frequecy allowed for pages which are not downloadable (again an index)
+MaxErrFrequency		3
+
+# Don't choose an interval between refreshes which is less than the page contents stability time * this factor.
+StabilityFactor		25%
+
+# If we're about to lose at least this number of gathered documents, stop and complain loudly. (default: 0 == unlimited)
+#SafetyBrakeLimit	3M
+
+# Logging of various statistics
+PlannerStats		1
+SelectStats		1
+
+# Array of error codes (or ranges) which cause an URL to become zombie.
+#ZombieErrors		2407
+
+# Expiration of zombies
+ZombieExpire		30d
+
+# Turn redirect with unknown/zombie target to zombie after this delay. The default is infinity.
+#RedirectToZombieTimeout	5d
+
+# If the Shepherd's filter rejects a site and returns one of these error codes,
+# we delete the entire site (it does not matter if there were some accepted subbranches).
+# This feature can help to filter out problematic spam completely, but it
+# should be used with caution.
+#PruneSiteErrors	2999
+
+# Path to Shepherd's URL database. This file can significantly speed up resolving in some
+# administration tools (such as bin/shep) at a slight cost to gathering efficiency.
+# An empty string would disable this feature.
+URLDatabaseFile		db/urls
+
+# Path to URL database sorted by footprints (hash values). It can be generated from
+# unsorted URLDatabaseFile and is useful especially when resolving sorted URL sets.
+# See bin/shep-urls command for details.
+URLSortedFile		db/urls-sorted
+
+# Sort the index before performing finish hooks and closing the state. (default: 0=off)
+# This makes many inquiries by the `shep' command much faster at the expense of slowing down the gatherer slightly.
+SortIndex		1
+
+}
+
+######## Shepherd master daemon and scheduler ###################################
+
+ShepMaster {
+
+# Log file (default: stderr)
+LogFile			log/shepherd-%Y%m%d
+
+# Log connections to the daemon
+LogConnections		1
+
+# Where to send mail notifications about errors (list of mail addresses)
+#ErrorMail		mj@ucw.cz
+
+# Where to send mail notifications about successful cycles
+#ProgressMail		mj@ucw.cz
+
+# Trace states and actions (0=off, 1=brief, 2=detailed)
+Trace			0
+
+# Shell commands to run during daemon startup
+# Format: (Startup|Prepare|Finish)Hook	{ Command=string }
+#StartupHook		"echo 'Running startup-hook...'"
+
+# Shell commands to run at the start of each cycle (before planning). The commands can expect
+# db/state/current to point to the current state.
+#PrepareHook		"echo 'Running prepare-hook...'"
+
+# Shell commands to run at the end of each cycle, after everything is finalized
+# (db/state/current is again set to the current state)
+#FinishHook		"echo 'Running finish-hook...'"
+
+# Port we listen on for indexer connections
+Port			8187
+
+# Maximal number of connections on listen queue (max. is OS dependent)
+ListenQueue		32
+
+# Access list (IP addresses only). See Gather.AccessIP for details on access lists.
+# List format: Access	{ Mode=(allow|deny); IP=1.2.3.4/5 }
+Access			allow 127.0.0.1
+
+# For how long are we willing to wait for commands on the control connection [sec]
+CtrlTimeout		300
+
+# For how long are we willing to keep a bucket feeding connection open [sec]
+FeederTimeout		1h
+
+# By default, states which are no longer needed, are deleted. However, you can
+# request keeping of some number of most recent unused states to aid debugging.
+# When a cleanup is pending, the history is purged.
+KeepOldStates		0
+KeepInterimStates	0
+
+# Similar logic can be used for keeping a couple of recent exported states.
+KeepExportedStates	0
+
+# Instead of deleting a state, the daemon can just forget about it and let it
+# remain on the disk. (0=don't delete anything, 1=only interim states, 2=all)
+DeleteOldStates		2
+
+# How much space we reserve for the deleted buckets: If the bucket file is larger
+# than Shepherd.BucketFileSize + WorkSpace, we invoke bucket cleanup.
+WorkSpace		100M
+
+# Force cleanup after this number of cycles
+#PeriodicCleanup	3
+
+# If free space on the volume holding our directories drops below this value,
+# we better stop everything.
+MinFreeSpace		100M
+
+# If bucket file size exceeds Buckets.MaxSize-MinBucketReserve, we stop reaping and schedule cleanup.
+MinBucketReserve	50M
+
+# How frequently we check the space constraints [sec]
+WatchPeriod		10
+
+}
+
+######## Shepherd Reaper ########################################################
+
+ShepReap {
+
+# Reaper can have its own log file where all the gathered URL's are logged
+URLLogFile		log/gather-%Y%m%d
+
+# Log statistics this often (in seconds; default: disabled)
+StatPeriod		300
+
+# Checkpoint the journal this often (in seconds; default: 0=do not).
+# If shep-reap fails, shep-recover is able to return to the last checkpoint.
+CheckpointPeriod	10
+
+# Number of threads for prefetching of buckets which will be needed soon.
+# Prefetching can significantly improve the overall performance on RAID systems.
+# (default: 0=prefetch turned off).
+#PrefetchThreads	2
+
+# We try to keep this number of prefetch requests in flight.
+# Applicable only if PrefetchThreads>0 and should be >= PrefetchThreads.
+#PrefetchQueueSize	10
+
+# Cache robots.txt for sites with > RobotsCacheThreshold plan entries (default=1).
+RobotsCacheThreshold	1
+
+}
+
+#ifdef CONFIG_SHEPHERD_CHILDREN
+######## Gathering by local subprocesses #######################################
+ShepChildren {
+# Maximum number of children (default=0)
+MaxChildren		5
+
+# Compress generated buckets (0=no, 1=yes)
+Compress		1
+
+# Verbosity level: 0=silent, 1=trace gathered URL's
+Trace			0
+
+# Time limit for one gathering job, in seconds
+ChildTimeOut            60
+
+# Maximum load, measured as a sum of complexities of all running jobs
+MaxLoad			20
+}
+
+#endif
+######## Shepherd manual control ################################################
+
+ShepMan {
+
+# Parameters of histograms: number of boxes (excluding the overfull box)
+# and box width.
+HistNumBoxes		90
+HistBoxWidth		1d
+
+# Print ages in the following units
+AgeDisplayUnit		1
+
+# Configuration of iterators in sorted binary sources. When the algorithm needs
+# to find next key in an ordered sequence, it first tries to check
+# BinaryForwardLimit bytes sequentially, then it makes some exponential jumps
+# (starting with BinaryFirstSkip) and binary search (until BinarySplitLimit)
+# and finally it does sequential search again. This is a little complicated
+# so do not change these parameters unless you know what you are doing.
+# All the parameters are 64K by default.
+BinaryForwardLimit	64K
+BinaryFirstSkip		64K
+BinarySplitLimit	64K
+
+# Average uncompressed size in bytes of blocks in sorted text sources (default=16K).
+TextBlockLimit		16K
+
+}
+
+######## Shepherd database mirroring utility ####################################
+
+ShepMirror {
+
+# Timeout during connection setup and initial handshake [sec]
+ConnectTimeout		300
+
+# Timeout when waiting for a reply
+ReplyTimeout		300
+
+# Number of connect retries and delay between them
+RetryCount		48
+RetryDelay		900
+
+# Automatically fix bucket pointers. Mirroring is faster with disabled FixPointers,
+# but you must run "bin/shep-recover <state> cleanup" before the cloned state can be used.
+FixPointers		1
+
+}

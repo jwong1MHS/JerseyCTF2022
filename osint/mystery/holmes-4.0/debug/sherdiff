@@ -1,0 +1,11 @@
+#!/bin/sh
+# Call diff on two Sherlock trees, excluding the right files.
+
+if [ -z "$2" -o -n "$3" ] ; then
+	echo >&2 "Usage: sherdiff <tree1> <tree2> [<options>]"
+	exit 1
+fi
+O=$1
+N=$2
+shift 2
+exec diff -pruN "$@" $O $N -x TAGS -x custom -x run -x obj -x "*~" -x CVS -x unidata -x "_*" -x .git

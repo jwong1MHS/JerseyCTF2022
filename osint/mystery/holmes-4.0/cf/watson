@@ -1,0 +1,14 @@
+# Configuration for the Watson monitoring system
+# (this is a shell script sourced by bin/watson)
+
+# List of search servers and the path to their log files
+SEARCH_SERVERS="localhost"
+
+# Gatherer log file
+GATHERD_SERVERS="localhost"
+
+# Indexer log file
+INDEXER_SERVERS="localhost"
+
+# Word statistics from the indexer
+LEX_SERVERS="localhost"

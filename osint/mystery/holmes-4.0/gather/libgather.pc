@@ -1,0 +1,11 @@
+# pkg-config metadata for libgather
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libgather
+Description: Sherlock gatherer library
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lgather
+Requires: @DEPS@

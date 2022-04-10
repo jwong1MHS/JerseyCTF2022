@@ -1,0 +1,724 @@
+# Configuration of gathering (included by cf/sherlock)
+
+######## General configuration of the gatherer ##################################
+
+Gather {
+
+# Maximum size of a single object (default: unlimited) (larger object => see below)
+MaxObjSize		200000
+
+# Allow truncation of objects (0=report error, 1=default=truncate them)
+AllowTruncate		1
+
+# Maximum size after decompression or other processing (if exceeded, trimmed)
+MaxDecodeSize		1M
+
+# Smaller documents are not checksummed for detection of duplicates during gathering
+# (0=checksumming turned off)
+MinSummedSize		256
+
+# Trace various decoders
+TraceDecode		0
+
+# Trace resolving of IP addresses and queue keys
+TraceResolve		0
+
+# Filter to be used by the gatherer
+Filter			cf/filter
+
+# Log URL errors in references
+LogRefErrors		1
+
+# Log relative base URL's if they occur on forbidden places
+LogBaseErrors		1
+
+# Access list defining which IP addresses we are allowed to connect to.
+# The rules are traversed sequentially, the first match wins.
+# Each rule specifies a host or network address and possibly also a netmask
+# or prefix length in bits. If no rules match, the default is Deny.
+# List format: AccessIP	{ Mode=(allow|deny); IP=1.2.3.4/5 }
+AccessIP		deny 0.0.0.0/8
+AccessIP		deny 224.0.0.0/224.0.0.0
+AccessIP		allow 0.0.0.0/0
+
+# If-Modified-Since downloads: request the new document be at least by this
+# number of seconds newer than the old one (a guard against improper IMS
+# implementations; -1=don't use IMS).
+#MinIMSDelay		0
+
+# If more than MaxRefreshAge seconds have elapsed since the last full
+# download, disable conditional downloads and other tricks and perform
+# a full download. (default: unlimited, 0=always reload)
+#MaxRefreshAge		1d
+
+# Objects that cannot be compressed to less than MinCompression% of their
+# original size are stored uncompressed
+MinCompression		90
+
+# Maximum amount of memory allocated by a parser
+# (currently enforced only by some parsers)
+MaxParserAlloc		16M
+
+}
+
+######## Content-type and content-encoding detector #############################
+
+Content {
+
+# Trace all data type operations, 2 for a higher verbosity level
+Trace			0
+
+# Input translation of content encodings (resolve commonly used aliases)
+# List format: (InEnc|InType|Encoding|TypeEnc)	{ Src=source; Dest=destination }
+
+InEnc		x-gzip		gzip
+InEnc		x-zlib		deflate
+InEnc		zlib		deflate
+InEnc		x-deflate	deflate
+InEnc		x-compress	compress
+
+# Enabled content encodings (don't disable any of them unless you also remove
+# it from the list of accepted encodings in HTTP section). The second
+# column can specify a filename suffix to be stripped when decoding.
+
+Encoding	zip		.zip
+Encoding	gzip		.gz
+Encoding	deflate
+Encoding	compress	.Z
+Encoding	x-bzip2		.bz2
+
+# Content types which are actually content encodings
+
+TypeEnc		application/zip		zip
+TypeEnc		application/gzip	gzip
+TypeEnc		application/compress	compress
+TypeEnc		application/bzip2	x-bzip2
+
+# Input data type translator. Several names are known as unreliable, several
+# others are mere aliases... "UNKNOWN" is a stub type for type rejection,
+# "ERROR" means an error message should be logged.
+
+InType		text/x-server-parsed-html	text/html
+InType		application/xhtml+xml		text/html
+InType		application/x-gzip		application/gzip
+InType		application/x-compress		application/compress
+InType		application/x-zlib		application/zlib
+InType		application/octet-stream	UNKNOWN
+InType		application/download		UNKNOWN
+InType		application/binary		UNKNOWN
+InType		message/*			ERROR
+InType		x-sherlock/*			ERROR
+
+# Data type guessing rules.  Each rule must resolve to a correct data type or
+# to "UNKNOWN".
+# 	A rule is of one of the following types: suffix (of a filename),
+# wildcard (matching a filename), bytes (matching the contents of the file),
+# isascii (ensures that a given content-type is an ASCII file), or extension
+# (like suffix, but it starts after the last dot, and it is matched very fast
+# using hash tables).  Extension rules are entered using ExtRule.
+# 	The rules are applied in the following order: bytes come first,
+# extensions come second, and all other types come last.  The rules within
+# each type are applied sequentially.  
+# Format: Rule	{ Mode=(suffix|wildcard|bytes|isascii); Type=content-type; rule=list of possible values }
+# 	ExtRule	{ Type=content-type; rule=list of possible extensions }
+
+Rule bytes	application/zip		0:504B0304
+Rule bytes	image/gif		0:"GIF87a"	0:"GIF89a"
+Rule bytes	image/ilbm		0:"FORM",8:"ILBM"
+Rule bytes	image/jpeg		0:FFD8,6:"JFIF"	0:FFD8,6:"Exif"	0:FFD8,6:"Adobe"
+Rule bytes	image/png		0:89,1:"PNG"
+Rule bytes	application/compress	0:1F9D
+Rule bytes	application/gzip	0:1F8B
+Rule bytes	application/bzip2	0:"BZh"
+Rule bytes	application/postscript	0:"%!PS-Adobe"
+Rule bytes	application/pdf		0:"%PDF-"
+Rule bytes	text/rtf		'0:"{\rtf1"'
+Rule bytes	application/ogg		0:"OggS"
+Rule bytes	text/xml		0:"<?xml" 0:EFBBBF3C3F786D6C 0:FEFF003C003F0078006D006C 0:FFFE3C003F0078006D006C00
+# MS Word: for DOS, with OLE, 1.x, 2.0, MacWord 4, and MacWord 5 (taken from antiword)
+Rule bytes	application/msword	0:31BE000000AB 0:D0CF11E0A1B11AE1 0:9BA52100 \
+					0:DBA52D00 0:FE37001C0000 0:FE3700230000
+ExtRule		text/html		html	htm
+ExtRule		text/tex		tex
+ExtRule		text/plain		txt
+ExtRule		text/vnd.wap.wml	wml
+ExtRule		text/rtf		rtf
+ExtRule		text/xml		xml
+ExtRule		application/zip		zip
+ExtRule		application/gzip	gz
+ExtRule		application/compress	Z
+ExtRule		application/bzip2	bz2
+ExtRule		application/tar		tar
+ExtRule		application/gzip	tgz
+ExtRule		image/gif		gif
+ExtRule		image/jpeg		jpeg	jpg
+ExtRule		image/png		png
+ExtRule		image/x-bmp		bmp
+ExtRule		image/x-pcx		pcx
+ExtRule		image/x-ico		ico
+ExtRule		image/tiff		tif	tiff
+ExtRule		image/x-portable-pixmap	ppm
+ExtRule		model/vrml		wrl
+ExtRule		text/css		css
+ExtRule		application/postscript	ps	eps	ai
+ExtRule		application/pdf		pdf
+ExtRule		application/x-midi	mid
+ExtRule		application/x-avi	avi
+ExtRule		application/x-mov	mov
+ExtRule		application/x-zip	zip
+ExtRule		application/x-arj	arj
+ExtRule		application/x-jar	jar
+ExtRule		application/x-rar	rar
+ExtRule		application/x-lharc	lzh
+ExtRule		application/x-exe	exe
+ExtRule		application/x-hqx	hqx
+#ExtRule	application/msword	doc
+ExtRule		application/excel	xls
+ExtRule		application/powerpoint	ppt
+ExtRule		application/x-602	602
+ExtRule		application/x-dvi	dvi
+ExtRule		application/x-msmetafile	wmf
+ExtRule		application/x-shockwave-flash	swf
+ExtRule		application/x-rpm	rpm
+ExtRule		application/x-deb	deb
+ExtRule		application/x-pgp	pgp
+ExtRule		application/x-dxf	dxf
+ExtRule		application/ogg		ogg
+ExtRule		audio/basic		au
+ExtRule		audio/mpeg		mp3	mp2
+ExtRule		audio/x-mpegurl		m3u
+ExtRule		audio/x-aiff		aiff
+ExtRule		audio/x-wav		wav
+ExtRule		audio/x-realaudio	ra
+ExtRule		video/mpeg		mpe	mpeg	mpg
+ExtRule		video/x-ms-asf		asf
+ExtRule		video/x-ms-asx		asx
+ExtRule		application/octet-stream	dll	nlm	wma
+Rule isascii	text/plain
+Rule isascii	text/html
+Rule isascii	text/vnd.wap.wml
+Rule isascii	x-sherlock/robots
+
+# A file is considered to be an ASCII-file if the fraction of ASCII-characters
+# is at least AsciiFraction/1000
+AsciiFraction		990
+
+}
+
+######## Character set detector #################################################
+
+Charset {
+
+# Trace all charset operations, 2 for higher verbosity level
+Trace			0
+
+# Log server-side errors (1=unrecognized charsets, 2=also mismatched ones)
+LogErrors		1
+
+# All known character sets and their aliases (case insensitive)
+# List format: Charset	{ Name=name; Aliases=alias1 alias2 ... }
+#Charset		IBM
+Charset			ISO-8859-1 8859-1 iso8859-1 iso8859_1 iso_8859-1 iso-8559-1 iso-8895-1 iso-latin-1 latin-1 latin1
+Charset			ISO-8859-2 8859-2 iso8859-2 iso8859_2 iso_8859-2 iso-8559-2 iso-8895-2 iso-latin-2 latin-2 latin2 iso
+Charset			ISO-8859-3
+Charset			ISO-8859-4
+Charset			ISO-8859-5
+Charset			ISO-8859-6
+Charset			ISO-8859-7
+Charset			ISO-8859-8
+Charset			ISO-8859-9
+Charset			ISO-8859-10
+Charset			ISO-8859-11
+Charset			ISO-8859-13
+Charset			ISO-8859-14
+Charset			ISO-8859-15
+Charset			ISO-8859-16
+Charset			cp852 ibm-852 ibm852 pclatin2
+Charset			Windows-1250 windows1250 win-1250 win1250 cp-1250 cp1250 iso-1250 iso1250 1250 windows windows-1520 cp cs-1250 cs-win1250 windows-cp1250
+Charset			Windows-1251 windows1251 win-1251 win1251 cp-1251 cp1251
+Charset			Windows-1252 windows1252 win-1252 win1252 cp-1252 cp1252
+Charset			CSN_369103
+Charset			x-kam-cs keybcs2 x-keybcs2
+#Charset		x-cork
+Charset			x-mac-ce mac macce apple-ce macintosh x-macce
+Charset			US-ASCII ascii usa-ascii
+
+# Internal hook for UTF-8 (accepted automatically for all languages if defined)
+Charset			UTF-8 utf8 utf=8
+
+# Array of charsets we do not want to gather (case insensitive)
+CharsetBlacklist	EUC-CN EUC-JP EUC-KR
+
+# Charset recognition is performed according to language families:
+
+LangFamily {
+	Name		cs				# Name of the family
+	Languages	cs sk				# Which languages it contains
+	AutoSets	ISO-8859-2 Windows-1250 UTF-8	# Auto-detected charsets
+
+	# Typical, improbable and forbidden characters (UCS-2 codes)
+	CTypical	00E1 010D 010F 00E9 011B 00ED 013A 013E 0148 00F3 00F4 0159 \
+			0161 0165 00FA 016F 00FD 017E 00C1 010C 010E 00C9 011A 00CD \
+			0139 013D 0147 00D3 00D4 0158 0160 0164 00DA 016E 00DD 017D
+	CImprobable	008A 008D 008E 009A 009D 009E
+	# Czech and Slovak characters written in iso-8859-2 into cp-1250 text:
+	#	B5 `l with caron'	-> 00B5 `micro sign'
+	#	A9 `S with caron'	-> 00A9 `copyright sign'
+	CImprobable:append	00B5 00A9
+	# `<<' and '>>' sometimes occur as item markers in cp-1250 text, so we want
+	# to mark the corresponding iso-8859-2 characters improbable:
+	#	AB `<<'			-> 0105 `a with ogonek'
+	#	BB `>>'			-> 0104 `A with ogonek'
+	CImprobable:append	0105 0104
+	# C3 occurs in Unicode sequences of accented characters and gives 0102 `A with breve'
+	# when misinterpreted as iso-8859-2 or cp-1250.
+	CImprobable:append	0102
+}
+
+LangFamily {
+	Name		pl
+	Languages	pl
+	AutoSets	ISO-8859-2 Windows-1250 UTF-8
+	CTypical	0142 017C 015B 0119 0105 00F3 0107 0144 0141 015A 017A 017B \
+			00D3 0106 0118 0104 0179 0143
+	CImprobable	0102
+	# Polish characters written in cp-1250 to iso-8859-2 text:
+	#	B9 `a with ogonek'	-> 0161 `s with caron'
+	#	A5 `A with ogonek'	-> 013D `L with caron'
+	CImprobable:append	0161 013D
+	# Polish characters written in iso-8859-2 to cp-1250 text:
+	#	A1 `A with ogonek'	-> 02C7 `caron'
+	CImprobable:append	02C7
+}
+
+LangFamily {
+	Name		hu
+	Languages	hu
+	AutoSets	ISO-8859-2 Windows-1250 UTF-8
+	CTypical	00E9 00E1 0171 0151 00FA 00F6 00FC 00F3 00ED 00C9 00C1 0170 \
+			0150 00DA 00D6 00DC 00D3 00CD
+}
+
+LangFamily {
+	Name		ru
+	Languages	ru
+	AutoSets	ISO-8859-5 Windows-1251 UTF-8
+	CTypical	0401-045F
+}
+
+# Wildcard language family containing all unknown languages
+LangFamily {
+	Name		*
+	AutoSets	ISO-8859-1 UTF-8
+
+	# These apply as defaults for all families
+	CForbid		0000-0008 000B 000E-001F 007F-009F
+}
+
+# If the document language is missing, we guess a language set based on the hostname:
+# Format: DefLang	{ HostPatt=wildcard; LangList="cs sk en ..." }
+DefLang			localhost	"cs en"
+DefLang			*.cz	"cs en"
+DefLang			*.sk	"sk en"
+DefLang			*.hu	"hu en"
+DefLang			*.pl	"pl en"
+DefLang			*.ru	"ru en"
+DefLang			*	"en"
+
+# Fallback charset if we were reported an unknown charset
+FallbackCharset		US-ASCII
+
+# Believe in charset reported by the server (-1=never, 0=validate it, 1=known, 2=always (and reject unknown charsets))
+BelieveServer		0
+
+# Believe in charset reported in META tags (-1=never, 0=validate it, 1=known, 2=always)
+# (server-reported charset has always precedence unless it's known to be invalid)
+BelieveMETA		0
+
+# One improbable/forbidden character is penalized like the following number of typical characters
+ImprobablePenalty	5
+ForbiddenPenalty	40
+# One incorrect UTF-8 sequence is penalized like the following number of correct UTF-8 sequences
+UTF8Penalty		20
+
+# We believe the charset reported by the server/META-charset only if the
+# average grade of non-ASCII characters (+1 for typical, -ImprobablePenalty for
+# improbable, 0 for the others) is at least BelieveMinGrade/1000.  Otherwise we
+# run an auto-detection.  If it fails too, then we try the original charsets
+# with lower threshold BelieveMinGrade2/1000 and then, finally, use the
+# fall-back charset.
+BelieveMinGrade		700
+BelieveMinGrade2	0
+
+}
+
+######## HTTP downloader ########################################################
+
+HTTP {
+
+# Maximal number of header lines (larger => reject)
+MaxHeaderLines		1000
+
+# HTTP header fields (see RFC 2616 for an explanation)
+#From			set-your-mail-address-here
+# List format: Accept(Types|Charset|Encoding|Language)	{ String value }
+AcceptTypes		text/html application/xhtml+xml 'text/plain;q=0.3'
+#ifdef CONFIG_PDF
+AcceptTypes		application/pdf
+#endif
+#Referer		http://some.referring.page/you/wish/to/send
+AcceptCharset		ISO-8859-2 'ISO-8859-1;q=0.5' '*;q=0.2'
+AcceptEncoding		deflate gzip compress
+#AcceptLanguage		cs 'en;q=0.5' '*;q=0.2'
+
+# User-defined header fields---list of strings
+#Header			"X-Magic: Poof!"
+
+# User-defined User-Agent field (the default is "holmes/version")
+# If you are going to modify this, please take a look at the exact syntax in RFC 2616
+#UserAgent		"Mozilla/4.0"
+
+# Comment to be added to the User-Agent field
+#UserAgentComment	"see http://www.example.com/bot.html"
+
+# Timeout in seconds for connect, header complete and body complete
+ConnectTimeout		60
+HeaderTimeout		60
+BodyTimeout		300
+
+# Definition of a proxy (caching might be useful when testing). Please keep in mind
+# that the gatherer still needs to be able to resolve host names directly, because
+# it constructs QKeys from IP addresses.
+# UseProxy		cache.cuni.cz
+# ProxyPort		3128
+
+# Trace HTTP dialogs
+Trace			0
+
+# Check if length of downloaded data stream matches the one given in header
+# Must be turned off if you want to support SaCzech :-(
+LengthChecks		0
+
+}
+
+######## File downloader ########################################################
+
+File {
+
+# Allow scanning of directories
+AllowDirs		1
+
+}
+
+######## Document parsing: general settings #####################################
+
+Parse {
+
+# Trace document parsing
+Trace			0
+
+# Maximum number type conversions of a single document (default: 0=unlimited)
+MaxConversions		10
+
+# A list of known content types and their parsers
+# When adding new types, remember to update HTTP.AcceptTypes as well
+# List format: Type	{ Type=content-type;	Parser=name; Args=array of strings }
+Type			text/plain		text
+Type			text/html		html
+Type			x-sherlock/robots	robots
+#ifdef CONFIG_IMAGES
+Type			image/jpeg		image
+Type			image/pjpeg		image
+Type			image/gif		image
+Type			image/png		image
+#endif
+#ifdef CONFIG_PDF
+Type			application/pdf		pdf
+#endif
+#ifdef CONFIG_MSWORD
+Type			application/msword	msword
+Type			application/vnd.ms-word	msword
+#endif
+#ifdef CONFIG_EXCEL
+Type			application/excel		excel
+Type			application/vnd.ms-excel	excel
+#endif
+#ifdef CONFIG_MP3
+Type			audio/mpeg		mp3
+#endif
+#ifdef CONFIG_OGG
+Type			application/ogg		ogg
+Type			audio/x-vorbis		ogg
+#endif
+#ifdef CONFIG_WML
+Type			text/vnd.wap.wml	wml
+#endif
+
+# External parsers; parameters: destination content-type, command with its parameter
+#Type			application/postscript		external text/plain bin/ps-parse
+#Type			application/msword		external text/plain antiword -t -
+
+# A list of content encodings and their decoders
+# List format: Encoding	{ Type=content-enc;	Parser=name; Args=array of strings }
+Encoding		zip			zip
+Encoding		gzip			gzip
+Encoding		deflate			deflate
+Encoding		compress		compress
+
+}
+
+######## Document validator (needs to be enabled in filters) ####################
+
+Validate {
+
+# Do validate documents during parsing
+Validate		0
+
+# Rules mapping content types to validation commands
+# (they get document contents on their stdin and should spit error messages
+# to either stdout or stderr)
+# List format: Validator	{ Type=content-type; Command=string }
+Validator		text/html	/opt/wdg-validator/bin/validate
+
+}
+
+######## HTML parser ############################################################
+
+HTML {
+
+# Comment parsing mode:	0=standard
+#			1=historical (any ">" terminates)
+#			2=netscape (any "-->" terminates)
+CommentMode		2
+
+# Hack to minimize confusion caused by missing end quotes.
+# 0	Do nothing
+# 1	EOL terminates quoted string
+# 2	">" after first EOL terminates quoted string
+QuoteHack		2
+
+# Hack to work around broken script ends
+# 0	Scripts end with </[a-zA-Z] (as per HTML 4.01 specs)
+# 1	Scripts end with a properly nested </script>
+ScriptHack		1
+
+# Hack to work around incorrectly terminated character references
+CharRefHack		1
+
+# Hack to convert META refreshes faster than a specified time [sec]
+# to redirects, if the source document has less than RefreshThreshold chars.
+RefreshHack		10
+RefreshThreshold	500
+
+# Ignore unknown character references instead of leaving them in text
+IgnoreUnknownCRs	0
+
+# Log META tags (0=off, 1=unknown ones, 2=all)
+LogMetas		0
+
+# Search for charset in META tags
+MetaCharset		1
+
+# Search for language in META and HTML tags
+MetaLanguage		1
+
+# Search for charset in XML declaration
+XMLCharset		1
+
+# Search for "xml:lang" in HTML tags
+XMLLanguage		1
+
+# Respect comments of type <!-- robots:noindex --> and <!-- /robots:noindex -->
+# as a local alternative to the META robot control elements.
+RobotComments		1
+
+# Ignore most attributes with '<' character (not valid at least in XHTML)
+LtHack			1
+
+# Selected META tags can be recognized and stored as object attributes.
+# This overrides their default meaning for the HTML parser.
+# List format: MetaAttr	{ Attr=sherlock-attribute; Meta=name-of-the-meta }
+#MetaAttr		1 keywords
+
+# These META tags are ignored instead of reporting them as unknown.
+IgnoreMetas		author generator formatter copyright
+
+}
+
+######## Robot file parser ######################################################
+
+Robots {
+
+# Tracing
+Trace			0
+
+# Work around common errors
+WorkArounds		1
+
+# Name of our robot we search for
+RobotName		holmes
+
+}
+
+#ifdef CONFIG_IMAGES
+######## Image parser ###########################################################
+
+Images {
+
+# Maximum allowed width and height of thumbnails
+ThumbnailMaxWidth	150
+ThumbnailMaxHeight	150
+
+# JPEG quality factor of JPEG thumbnails (0-100)
+ThumbnailJPEGQualityFactor	75
+
+# When original image has less than or equal this number of colors, and we
+# don't resize it, use PNG format for the thumbnail instead of JPEG
+# (useful only on indexed-color images, so use values 2-256)
+ThumbnailTypeThresholdColors	64
+
+# Minimum and maximum allowed count of pixels in original image
+MinSrcImagePixelCount		16
+MaxSrcImagePixelCount		4m
+
+# If the last component of image URL (except for the extension) doesn't
+# contain this number of consecutive letters and the image has no ALT,
+# we don't gather it as it won't be indexed anyway.
+# (0=all names are good, default: no name is good)
+GoodNameThreshold		4
+
+}
+#endif
+
+#ifdef CONFIG_PDF
+######## PDF parser #############################################################
+
+PDF {
+
+# Tracing
+Trace			0
+
+# Max. count of indirect objects in PDF file = XrefTabSize^2
+XrefTabSize		1000
+
+# Respect if the permissions of the documents forbid extraction of text
+RespectUserRights	1
+
+# Log warnings about unsupported features
+Warnings		1
+
+}
+#endif
+
+#ifdef CONFIG_MP3
+######## MP3 parser #############################################################
+
+MP3 {
+
+# Tracing (default=off)
+Trace			0
+
+# Log warnings (default=off)
+Warnings		1
+
+# Maximum number of warnings before the file is rejected as corrupted (default=infinity)
+MaxWarnings		20
+
+# When we wish to parse MP3 frames (0=stop parsing if ID3 tag is found, 1=scan all available frames)
+ParseFrames		1
+
+}
+
+#endif
+
+#ifdef CONFIG_OGG
+######## OGG parser #############################################################
+
+OGG {
+
+# Tracing, higher value means higher verbosity (default=off)
+Trace			0
+
+# Log warnings (default=off)
+Warnings		1
+
+# Maximum number of warnings before the file is rejected as corrupted (default=infinity)
+MaxWarnings		20
+
+# Maximum number of logical streams in a single physical stream (default=infinity)
+MaxStreams		64
+
+# Maximum allowed packet size (default=2GB)
+MaxPacketSize		4M
+
+# Seek operations search intervals of this length for a page part (default=2*OGG_MAX_PAGE_SIZE)
+MaxSeekInterval		130614
+
+# Maximum number of CRC checks when seeking a page. The algorithm process
+# each found 'OggS' substring. (default=infinity)
+MaxSeekChecks		100
+
+}
+
+#endif
+
+#ifdef CONFIG_WML
+######## WML parser #############################################################
+
+WML {
+
+# Trace at most this number of warnings, the rest is silently ignored (default=0)
+MaxWarnings		20
+
+# CardsMode can be used to disable gathering of all <card> tags except the first one.
+# Possible values:
+#   all      -- gather references and content everywhere (default)
+#   all-refs -- gather references everywhere, but content only inside the first card
+#               or outside cards (metas, templates)
+#   first    -- do not gather anything from later cards
+CardsMode		all
+
+# Gather also references with variable substitutions. All variables expand to an empty string. (default=off)
+AcceptSubstRefs		0
+
+# The same for all other attributes (default=off)
+AcceptSubstAttrs	1
+
+# Enable support for robot rules in meta tags (default=off)
+RobotMetas		1
+
+# Respect comments of type <!-- robots:noindex --> and <!-- /robots:noindex -->
+# as a local alternative to the META robot control elements.
+RobotComments           1
+
+# Log META tags (0=off, 1=unknown ones, 2=all)
+LogMetas                0
+
+# Selected META tags can be recognized and stored as object attributes.
+# This overrides their default meaning for the WML parser.
+# List format: MetaAttr { Attr=sherlock-attribute; Meta=name-of-the-meta }
+#MetaAttr		1 keywords
+
+# These META tags are ignored instead of reporting them as unknown.
+IgnoreMetas		refresh author generator formatter copyright
+
+# Enable hack to convert 'ontimer' events to redirects (default=0),
+# if the timer's value is less than OnTimerRedirectThreshold (measured in 0.1s units).
+OnTimerRedirects	1
+OnTimerRedirectThreshold 150
+
+# Enable hack to convert 'enenterforward' events to redirects (default=0).
+OnEnterForwardRedirects	1
+
+}
+
+#endif
+
+######## Batch gatherer #########################################################
+
+GBatch {
+
+# Gather each document in a subprocess, avoiding possible resource leaks
+Subprocess		0
+
+}

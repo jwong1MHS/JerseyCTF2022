@@ -1,0 +1,11 @@
+# pkg-config metadata for libcustom
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libcustom
+Description: Functions defined by Sherlock customization
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lcustom @CUSTOM_LIB_EXTRAS@
+Requires: @DEPS@

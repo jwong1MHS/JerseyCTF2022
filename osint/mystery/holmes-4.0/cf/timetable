@@ -1,0 +1,116 @@
+#
+# Time table for gathering scheduler
+#
+# The scheduler works in cycles, each cycle consists of $cycle_slots
+# time slots with duration $slot_time seconds. When any error occurs
+# (i.e., any of the commands returns with a non-zero exit code or it
+# receives a fatal signal), the scheduler stops and it sends a report
+# by e-mail.
+#
+# This file contains three types of lines:
+#    - comments (empty lines and lines starting with "#")
+#    - variable assignments (Perl commands starting with a dollar or at sign)
+#    - command definitions (see below)
+#
+
+# Log file to use (STDERR if undefined)
+# Can contain strftime conversions; re-opened at start of each slot.
+$logfile = "log/scheduler-%Y%m%d";
+
+# Slots per cycle
+#ifdef CONFIG_SHEPHERD
+$cycle_slots = 1;
+#else
+$cycle_slots = 6;
+#endif
+
+# Length of a slot [sec]
+#ifdef CONFIG_SHEPHERD
+$slot_time = 3600;
+#else
+$slot_time = 14400;
+#endif
+
+# We align cycle starts on a multiple of $cycle_alignment [sec] since $cycle_epoch.
+# $cycle_alignment must be at most $cycle_slots * $slot_time
+$cycle_epoch = POSIX::mktime(0,1,8,8,9,101);
+$cycle_alignment = $slot_time;
+
+# If any slot is shorter than $slot_min sec, it's left out and we just wait
+# for the next one. This can happen with the first slot on startup and also
+# when some slot (e.g., indexing taking a lot of time) exceeds its length
+# too much.
+#ifdef CONFIG_SHEPHERD
+$slot_min = 600;
+#else
+$slot_min = 3600;
+#endif
+
+# When the scheduler starts running, it can run some out-of-order
+# slots before resuming normal operation.
+# (this can be also set from the command line when starting the scheduler).
+@exceptions = ("s");
+
+# Mail address to send error notifications to (optional)
+#$error_mail = "mj\@ucw.cz";
+
+# Mail address to send progress reports to after every slot (optional)
+#$progress_mail = "mj\@ucw.cz";
+
+# Tracing of commands executed
+$trace = 1;
+
+# If SIGTERM is to be sent after less than $min_run_time seconds,
+# the whole command is skipped.
+$min_run_time = 600;
+
+# Special slots for which $slot_min and waiting at the end don't apply (a regex)
+$special_slots = "[si]";
+
+# File to put name of the current slot to
+$slot_file = "lock/scheduler.slot";
+
+# The list of commands. All commands whose <slot-regex> matches the current
+# time slot number are executed in their listed order. If the command doesn't
+# finish in <tout> seconds, the scheduler stops, but it leaves the command
+# running. If <term> is specified, the scheduler sends SIGTERM to the command
+# <term> seconds before the end of the current time slot; all such commands
+# have their <tout> measured from sending of the SIGTERM, not from the start.
+# Slot-regex "DOWN" matches scheduler shutdown. Commands enclosed in {...}
+# parentheses are evaluated by perl to get shell command string.
+
+# <slot-regex>	[<term>+]<tout>	<command>
+#ifdef CONFIG_SHEPHERD
+s		15		bin/gcontrol start
+s		15		bin/scontrol start
+[0i]		3000		bin/indexer -uf -SIndexer.Directory=index.new
+[0i]		240		bin/scontrol swap
+DOWN		15		bin/scontrol stop
+DOWN		15		bin/gcontrol stop
+
+# Special slots:
+# i		regenerate index
+# s		start gatherer and sherlock server
+#else
+[^0-9]		600		bin/scontrol stop
+[^0-9]		600		rm -rf tmp/*
+[^0-9]		600		bin/scontrol start
+[^0-9]		600		bin/grecover
+[0-9f]*		600		bin/sizer db/*
+[0f]		600		bin/expire
+[1-9].*		600		bin/expire -q
+.*		600		bin/sizer db/*
+[1i]		3600		bin/indexer -SIndexer.Directory=index.new
+[1i]		600		bin/scontrol swap
+.*		600		bin/rotate-log 1 365 log/gatherd-*
+.*		600		bin/rotate-log 10000 365 log/scheduler-*
+.*		600		bin/rotate-log 10000 365 log/sherlockd-*
+[0-9fg]*	600+100000	bin/gatherd
+DOWN		600		bin/scontrol stop
+
+# Out-of-order slots we use:
+#	s	normal scheduler startup
+#	f	do a full expire
+#	i	do an index build
+#	g	avoid expiration, only gather
+#endif

@@ -1,0 +1,110 @@
+Roadmap of the Indexer:
+
+Boxes are programs, brackets denote file names, respectively the corresponding configuration
+directives which set the names. See doc/file-formats for formats of the files.
+
+		  	       	       	 buckets
+		  	      		    |
++-------------------------------------------+
+|		  	      		    |
+|		       	      	       +---------+
+|                                      | Scanner |-------->[Parameters] (also touched by mklex and chewer)
+|		       	      	       +---------+
+|      	       	       	       	       	|||||||||
+|    ##################################################################################################################
+|    |	       	|     	       	|	   |                |                        |          |            |        |
+| [Links] [Fingerprints] [Attributes] [LabelsByID]      [URLList]                [Merges] [Checksums] [Signatures] [LinkTexts]
+|    |          |      	 [Notes]|      	   |   	            |                        |          |            |        |
+|    | 	    +--------+ 	+-------|----------|----------------|------------------------|--+-----+ +------+     +-+      |
+|    |	    | fpsort | 	| +-----|----------|----------------|------+       +-------1>|  |     |        |       |      |
+|    | 	    +--------+ 	| |    	|      	   |   	     +------+---+--|-----+ |   	     | 	|     |	       |       |      |
+|    | 	        |      	| |    	|          |         |      |   |  |     | | +------>|  | +---------+  |       |      |
+|    |	 [Fingerprints] | |   	|          | +------------+ | +------+   | | |       |  | | mergefp |  |       |      |
+|    |	   [FPSplits]   | |   	|          | | sitefinder | | | back |---|-+ |  +---<+  | +---------+  |       |      |
+|    | 	       	|      	| |     |          | +------------+ | |linker|   | | |  |    |  |   |   +-----------+  |      |
+|    +------+  	+-------+ |     |          |    |     |     | +------+   | +-|--|--2>|  |   |   | mergesums |  |      |
+|           |  	|      	  |    	|<---------|----+  [Sites]  |     | 2    |   |  |    |<-----+   +-----------+  |      |
+|     	    |   |         |     |          |            +-------+ | |    |   |  |    |  |          |   +------------+ |
+|	    |   |      	  |    	|          | [Catalog]->| oook  |-|-|->--|---+  |    |<------------+   | mergesigns | |
+|	 +---------+   	  |     |          |            +-------+ | |    +------|----|--|--------+     +------------+ |
+|        | mkgraph |<-----|----<+          |              | | |   | |    |      |    |  |        |        |    |      |
+|	 +---------+   	  |     |<---------|--------------+ | +---|-|-+  |      |    |<-------------------+    |      |
+|             |        	  | +-->|          |<---------------+     | | | +----------+ |  |        |          [Matches] |
+|      	      |	       	  | |  	+>---------|-------------------->-|-|-|-| keywords | | 	|    [URLList]                |
+|        [LinkGraph]      | |   |          |                      | | | +----------+ |  +        |                    |
+|	      |	      	  | |	|	   |<---------------------|-|-|----+  |	     |	+------+ | +------------------+
+|	      |	       	  | |   |<-12------|----------------------+ | |       |      |         | | |
+|	      +->---------+ |  	|          |<--2--------------------+ |<------+   +->|      +----------+
+|             |             |   |          |             +--------+   |           |  +------| reftexts |
+|	      |	      	    |  	|<---------|-------------| merger |---|-----------+  |      +----------+
+|      	 +---------+   	    |   |          |             +--------+   |              |            |
+|	 | weights |  	    |  	|          |<-------------------------|--------------|------------+
+|      	 +---------+  	    |  	|          |  +---------------+-------|--------------+
+|      	    | |	       	    |  	+----------|--|------------+  |	      |
+|      	    | +-------------+  	|          |  |        	   |  |	  [Keywords]
+|	    |	      		|      	   |  |            |  |
+|       [Weights]         +----------+ 	   |  |            |  |
+|	     	      	  | attrsort | 	   |  |            |  |
+|	     	      	  +----------+ 	   |  |            |  |
+|		      	   	|      	   |  |	      	   |  |
+|      	       	       	       	+-------+  |  |        	   |  |
+|		      	   	|      	|  |  |	      	   |  |
+|		      	   	|     +-----------+   +----------+
+|      	       	       	       	|     | labelsort |   |	feedback |
+|		      		|     +-----------+   +----------+
+|		      		|           |	      	   |
+|      	       	       	    [CardInfo]   [Labels]      [Feedback]
+|		      	       	|    	    |
++------+------------------+     |           |
+       |  +---------------|-----+           |
+       |  |  +------------|--+--|-----------+
+       |  |  | 	          |  |  |
+     +---------+        +-----------+                  +-------+
+     | 	mklex  |        |           |                  |       |-------->[StringMap]
+     +---------+        |           |-->[StringIndex]->| ssort |-------->[StringHash]
+       	  |    	        |           |                  |       |---+
+       [LexRaw]	        |  chewer   |                  +-------+   |
+          |        +--->|           |                              +---->[References]
+  +------------+   |    |           |                  +-------+   |
+  |  lexorder  |   |    |           |-->[WordIndex]--->|       |---+	      +------+
+  +------------+   |    |           |                  | wsort |--[LexWords]->| lex  |-->[Stems]
+    |        |     |    +-----------+              +-->|       |        +---->| sort |-->[Lexicon]
+    |   [LexOrder] |      |   |   |                |   +-------+        |     +------+
+[StemsOrder] | 	   |  [Cards] | [CardAttributes]   |   		       	|
+    |	     +-----+	      |	       	       	   |   +-------+	|
+    |	     | 	    	      +---[CardPrints]-------->| psort |------------>[CardPrints]
+    |	     |	    		       	       	   |   +-------+ 	|
+    |  	     +-------------------------------------+   	   		|
+    +-------------------------------------------------------------------+
+
+Glossary:
+
+object		a document on the indexer's input (see doc/objects for details)
+skeleton	an incomplete document (containing only an URL and some trivial attributes),
+		usually supplied by the gatherer when it wants to know the document's weight
+		before downloading it
+bucket		a representation of an object as used on the indexer's input
+fingerprint	a 96-bit hash we use instead of URL's for convenient handling
+checksum	a 128-bit hash of document contents (we assume different documents
+		always get different hashes)
+index card	a processed form of an object stored in the index
+label		additional attributes attached to an object during indexing; they are usually
+		processed as a part of the object, but stored separately to avoid local
+		copies of full objects. Except for some temporary labels, all labels
+		end up in the index cards, sometimes as a part of a per-URL or per-redirect
+		block.
+attributes	a small structure containing basic information about the index card
+		which is intended to be accessed very quickly (we assume attributes
+		of all the cards fit in the memory at once)
+notes		an extension of the attributes, used inside the indexer to store miscellaneous
+		information on objects and skeletons; unlike attributes, it's not a part of
+		the final index and it's accessed only sequentially.
+word		a text word together with its category
+string		anything we index and which is not a word (i.e., an URL) + category
+lexicon		a list of all known words including some data about them
+subindex	the indexer can create either a monolithic index or split its output to
+		several subindices, usually based on document type. The subindices can be
+		processed by separate search servers and the results merged by the multiplexer.
+slice		the reference chains in each (sub)index can be split to several parts
+		(corresponding to disjoint ranges of card ID's) and these parts can be
+		processed in parallel by multiple threads of a single search server

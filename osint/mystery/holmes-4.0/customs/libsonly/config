@@ -1,0 +1,51 @@
+# Configuration of libraries (libucw, libcharset, libsh etc.)
+
+Set("CUSTOM_DIR" => "customs/libsonly");
+
+Set("CONFIG_INSTALL_API");
+UnSet("CONFIG_SHERLOCK");
+UnSet("CONFIG_GATHERD");
+UnSet("CONFIG_SHEPHERD");
+UnSet("CONFIG_INDEXER");
+UnSet("CONFIG_SEARCH");
+UnSet("CONFIG_LARGE_FILES");
+UnSet("CONFIG_LASTMOD");
+UnSet("CONFIG_FILETYPE");
+UnSet("CONFIG_SPELL");
+UnSet("CONFIG_MAX_CONTEXTS");
+UnSet("CONFIG_32BIT_REFERENCES");
+UnSet("CONFIG_LANG_DETECT");
+
+PostConfig {
+	Set("DEFAULT_CONFIG" => Get("INSTALL_CONFIG_DIR") . "/libucw");
+};
+
+if(!IsSet("CONFIG_UCW_ONLY")) {
+	Set("CONFIG_SHERLOCK_LIB");
+
+	Set("CONFIG_CHARSET");
+
+	# Compilation of libimages (can be disabled)
+	Set("CONFIG_IMAGES");
+
+	# Compilation of liblang (can be disabled)
+	Set("CONFIG_LIBLANG");
+
+	# Compilation of libshxml (can be disabled)
+	Set("CONFIG_XML");
+} else {
+	UnSet("CONFIG_SHERLOCK_LIB");
+	UnSet("CONFIG_CHARSET");
+	UnSet("CONFIG_IMAGES");
+	UnSet("CONFIG_LIBLANG");
+	UnSet("CONFIG_XML");	# This one is inside libsherlock, but anyway
+}
+
+# Keep turned on if debugging
+Set("CONFIG_DEBUG");
+
+# Local installation is no longer default
+UnSet("CONFIG_LOCAL");
+
+# Return success
+1;

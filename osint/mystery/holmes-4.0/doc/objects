@@ -1,0 +1,234 @@
+Sherlock Object System
+**********************
+
+Sherlock uses a simple object system for storing downloaded documents and also
+for many other purposes (search server responses, cache entries etc.).
+
+Object axioms:
+
+   1. Each object has a set of attributes, the order of attributes is not defined.
+   2. Each attribute is identified by its type (either a string attribute or a sub-object
+      attribute) and its name (a single printable ASCII character).
+   3. An attribute can occur multiple times, in this case, the relative order of the
+      occurences is preserved.
+   4. The value of a sub-object attribute is another object.
+
+The objects have a simple textual representation: a sequence of lines, each describing
+a single attribute. String attributes are stored as "<name><value>", sub-object attributes
+are stored as a "(<name>" attribute, followed by the lines of the sub-object and a ")" attribute.
+
+Objects can be also stored as binary buckets in several formats (see the "Buckets" section
+below). The preferred way of manipulating objects is by the functions defined in sherlock/object.h.
+
+The rest of this document describes the format of the document objects.
+
+DOCUMENT ATTRIBUTES
+~~~~~~~~~~~~~~~~~~~
++--------- attribute name
+|  +------ attribute source:
+|  |       G=gatherer (bucket body), H=gatherer (bucket header), g=internal to gatherer, Q=gatherer (from queue), X=gatherer (bucket export)
+|  |       I=indexer, i=indexer internal, S=search server, M=multiplexer
+|  |+----- inside cards (with default settings): -=not present, +=present, U=in per-URL or per-redirect blocks [all in default configuration],
+|  ||      x=in per-reftext block
+|  ||+---- "#" if multiple occurences are possible, "@" if multiple occurences are just a long value split to more lines
+|  |||
+A  G-#	applet/object/embed reference
+B  S+	database the object was found in
+C  G-	checksum of the document  [gatherd only]
+D  GU	time of last download
+E  GU#	content-encoding (can occur multiple times for nested encodings)
+F  G-#	frame reference
+G  G+	image attributes: \
+	(orig_w orig_h orig_colorspace orig_ncolors thn_w thn_h thn_type [A], \
+	[A is mark for animated images])
+H  G+	image signature
+I  G-#	image reference
+J  G+	time of last significant change ("jump") of object contents
+K  G-	auto-detected language ("?": auto-detection failed)
+L  GU	HTTP last modified timestamp (in server time)
+M  G+#	meta-information (title, keywords, ...): [<weight(0-3)>]<type-tag><text>  [some are per-URL]
+N  G+@	base224-encoded image thumbnail [except mux]
+   M+	thumbnail filename in cache (or URL if ThnBaseURL is set)
+O  g	OID reference (only old gatherd)
+   H-	URL footprint (only shepherd)
+   S+	card ID reference
+Q  S+	quality factor
+R  G-#	reference to URL
+S  G-	HTTP Server header
+T  GU	content-type
+   S+	site hash
+U  HU	url [mandatory]
+V  XU	last visited timestamp [supported only by shepherd, not gatherd]
+W  g	wait == retry after (seconds)
+   G+   gatherer's weight (<letter-g><weight>)
+   I #	weight calculation history (<one-letter-of-weight-type><value>)
+    +	types: s (scanner), o (oook), d (dynamic weight), m (merged), p (penalized), \
+    U	u (URL record), y (redirect), \
+    x	x (reftext; the number of links is appended)
+X  G+@	document text [caveat: in the card file, this attribute can be very long]
+   S+@	XML-ized snippet of document text
+Y  G-	redirected to
+Z  G-@	source stream (debugging only)
+a  G-#	iframe reference
+b  IU	frame backlink (max weight page containing this as a frame)
+c  GU	charset
+d  G-#	reference to description (<img longdesc=...> etc.)
+e  G+	expires
+f  G-#	form reference
+g  G-	HTTP ETag
+   S+	merging hash
+h  G-	how long did it take to gather this document (in ms)
+i  IU	image backlink (max weight page containing this obj as image)
+j  G-@	validator's judgement
+k  GU	server key (the basic part of a qkey, usually calculated according to IP address of the server)
+l  G-	language list
+   S+   document language
+m  S+	more documents from this site compressed
+n  S+	area ID
+p  g	date of previous version (`J' from previous version)
+q  G+	archiving contents forbidden by META tags (just passed through sherlockd, to be handled by front-ends)
+r  G-#	filtering rule (from robots.txt)
+s  GU	document size (before any encoding was applied)
+t  I+	site name
+u  I+	length of useful content (number of alnum characters)
+v  G-	card version (this format is v2)
+w  I-	initial weight (indexer input only; overrides Indexer.DefaultWeight)
+   S+	weight
+x  i-#	reference text: <url> <weight> <count> [<weight(0-3)>]<type-tag><text>
+y  IU	back-redirect
+z  IU	backlink (max weight page pointing to this one)
+    x	source of the reftext
+0-9	user attributes [not touched anywhere, but propagated]
+.  ?+#	remark [can be generated anywhere]
+!  G-	gathering result: <error code> <message>
+   S+	object not shown due to inconsistencies in database
++  S+	reserved for footer start mark
+(U I+#	start of per-URL block (here dwell all attributes marked with "U")
+(y I+#	start of per-redirect block (they are inside "(U" blocks and contain "U" type attrs for redirect to the real URL)
+(x I+#  start of per-reftext block (here dwell all attributes marked with "x"), reftext blocks are behind the body
+(c IU#	start of per-catalog-data block (inside are catalog data, for inner structure see centrum/doc/catalog)
+(f G+#  content dependent (description below); mandatory attribute 'f' with type id (only 'a' now)
+)	end of block
+
+Subobject '(f' for audio type (missing attributes mean unknown values):
+f  G+   'a' (mandatory)
+F  G+   format (optional, for example "wma")
+h  G-   hash of file header
+s  G+   file size in bytes
+l  G+   length in seconds
+b  G+   bitrate in bits per second
+r  G+   sample rate in Hz
+c  G+   number of channels
+N  G-#  title (indexed to MT_TITLE)
+A  G-#  album (indexed to MT_AUDIO_ALBUM)
+I  G-#  author (indexed to MT_AUDIO_AUTHOR)
+G  G-#  genre (indexed to MT_AUDIO_GENRE)
+D  G+#  recording date
+T  G+#  track number
+
+REFERENCES
+~~~~~~~~~~
+Each reference (attributes A,F,I,R,Y,d,f) has the following syntax:
+<url>[ <ref-id>[ <dont-follow>]]
+
+<url> = the URL referred to
+<ref-id> = reference ID number used in URL brackets in the extracted text
+<dont-follow> = 1 if the link has to be not followed
+
+EXTRACTED TEXT
+~~~~~~~~~~~~~~
+The extracted text stored in document objects is represented as a UTF-8 string
+consisting of printable characters, whitespace characters and tags. Each tag
+is composed of bytes in range 0x80--0xbf, so that it cannot be mistaken for
+a correct UTF-8 character. White spaces (only spaces and newlines are permitted)
+and certain tags serve as word separators.
+
+There are two types of tags: attribute changers and brackets. Attribute
+changers switch word types, the new type is valid till a next word type
+tag (default word type at the start of the document is WT_TEXT, the B bit
+indicates a sentence break):
+
+    +-+-+-+-+-+-+-+-+
+    |1|0|0|B| type  |
+    +-+-+-+-+-+-+-+-+
+
+Brackets delimit URL references inside the document. Start bracket must be
+matched with an appropriate end bracket and the brackets must nest correctly.
+Start brackets look this way:
+
+    +-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+    |1|0|1|0| high  | |1|0|    low    |
+    +-+-+-+-+-+-+-+-+ +-+-+-+-+-+-+-+-+
+
+(high and low give together a 10-bit number of the reference).
+End brackets are different:
+
+    +-+-+-+-+-+-+-+-+
+    |1|0|1|1|0|0|0|0|
+    +-+-+-+-+-+-+-+-+
+
+Attribute changers automatically break words, brackets don't.
+
+STATUS CODES
+~~~~~~~~~~~~
+The gathered documents can contain the following status codes in their "!" attributes:
+
+00xx	Document processed OK (0=normal document, 1=redirect, 2=resolved a queue key, 3=not modified since, 4=not changed)
+1sxx	Temporary errors
+2sxx	Fatal errors
+
+c0xx	URL parsing errors (see ucw/url.h for a list)
+c1xx	downloader errors (0=unknown proto, 1=auth not supported, 2=timeout, 3=no host, 4=DNS timeout, 5=DNS error, 6=???,
+	7=connect failed, 8=invalid response hdr, 9=hdr unexp close, 10=hdr line too long, 11=hdr too long,
+	12=hdr syntax error, 13=max hdr lines exc, 14=no resp hdr, 15=invalid version, 16=invalid rsph,
+	17=already expired, 18=not modified, 19=length mismatch, 20=???, 21=unknown xfer-encoding,
+	22=illegal chunked encoding, 23=unexp close in chunked enc, 24=must be localhost, 25=is-a-directory, 26=path too long,
+	27=invalid file name, 28=expected to be a directory, 29=name normalization, 30=HTTP error, 31=FILE errno,
+	32=special files not indexed, 33=HTTP downgrade, 34=invalid IP address, 35=would be too large, 36=configuration error,
+	37=unexpected HTTP status, 38=cannot connect to HTTP proxy)
+c2xx	parser errors (all of them fatal):
+	00-19  common for all parsers (0=format error, 1=line too long, 2=image manipulation error, 3=internal error,
+	       4=image size rejected, 5=truncated)
+	20-39  PDF parser (see gather/format/pdf/pdf.h)
+	40-49  external parser (40=exited with error, 41=read error, 42=misconfigured)
+	50-59  WML parser (50=invalid WML header, 51=XML syntax error)
+c3xx	gatherd errors (0=subprocess exited with rc<>0, 1=subprocess died, 2=subprocess timed out, 3=incomplete object,
+	4=forbidden by robots.txt, 5=robots.txt is a redirect, 6=site known to be nonexistent, 7=filtered out, 8=redirect with no target)
+c4xx	gatherer errors (0=unknown content type, 1=forbidden by filter, 2=too many conversions, 3=unknown content encoding,
+	5=object too large, 6=parser needs too much memory, 7=blacklisted or unknown charset)
+c5xx	decoder errors (0=invalid header, 1=cannot decode, 2=unsupported feature)
+c6xx	validator errors (0=child exited with error, 1=read error)
+c9xx	user-defined errors (can be set by filter rules)
+
+BUCKETS
+~~~~~~~
+Buckets are a compact representation of objects, used when an object should
+be stored in a file or sent over a network connection. Each bucket contains
+a header and a body, which are de facto separate objects, but usually containing
+different parts of a single document object (header contains class "H" attributes,
+body class "G" ones). The header can be accessed very quickly, while reading
+the body can need some effort (e.g., it can be compressed).
+
+There are the following types of buckets (cf. sherlock/object.h):
+
+BUCKET_TYPE_PLAIN	The standard textual format of buckets, as defined in the introduction:
+				byte	attribute_name
+				byte	content[]
+				byte	'\n'
+			This format doesn't distinguish between header and body, everything is mixed together.
+
+BUCKET_TYPE_V30		New format defined in v3.0. The same as BUCKET_TYPE_PLAIN, but header and body are
+			seperated with a blank line. If there is no body (which is perfectly correct
+			if the document hasn't been gathered yet), the blank line can be omitted as well.
+
+BUCKET_TYPE_V33		Advanced version of BUCKET_TYPE_V30, optimized for zero-copy reading.
+			The attributes are stored as follows:
+				UTF-8	length+1
+				byte	content[length]
+				byte	attribute_name
+			The header and the body are separated by a zero byte.
+
+BUCKET_TYPE_V33_LIZARD	Compressed version of BUCKET_TYPE_V33 (using ucw/lizard.c).
+			Header and the separating zero byte are the same, but the body stream
+			is compressed by the lizard and preceded by a 32-bit length of the original
+			uncompressed version and its Adler32 checksum. The body can be omitted.

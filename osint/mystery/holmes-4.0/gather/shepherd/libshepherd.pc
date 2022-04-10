@@ -1,0 +1,11 @@
+# pkg-config metadata for libshepherd
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libshepherd
+Description: Sherlock Shepherd library
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lshepherd
+Requires: @DEPS@

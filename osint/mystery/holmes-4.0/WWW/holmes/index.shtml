@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html40/strict.dtd">
+<html>
+<head>
+  <title>The Home Page of Sherlock Holmes</title>
+  <meta name=keywords content="Sherlock Holmes Search Engine">
+  <link rel=stylesheet title=Default href="sherlock.css" type="text/css" media=screen>
+</head>
+<body>
+
+<div id=links>
+<h2>Contents</h2>
+<img src="logo.png" width=200 height=80 alt="Logo of Sherlock Holmes">
+<div id=contents>
+<hr>
+<a href="#intro">What's that?</a>
+<a href="#features">Features</a>
+<a href="#license">License</a>
+<a href="#download">Download</a>
+<a href="#authors">Authors</a>
+<a href="#bugs">Reporting bugs</a>
+<a href="http://morfeo.centrum.cz/">Try Holmes online at morfeo.cz</a>
+<a href="#libs">Libraries</a>
+<hr>
+<a href="http://validator.w3.org/check/referer"><img src="valid-html401.png" alt="Valid HTML 4.01!" width=88 height=31></a>
+<a href="http://jigsaw.w3.org/css-validator/"><img src="vcss.png" alt="Valid CSS!" width=88 height=31></a>
+<a href="http://www.anybrowser.org/campaign/"><img src="anybrowser.png" width=88 height=31 alt="Best viewed with any browser."></a>
+<hr>
+</div>
+<p>
+<!--#config timefmt="%d. %m. %Y" -->
+Last modification: <span><!--#flastmod file="$DOCUMENT_NAME" --> by</span>
+<span><A HREF="mailto:holmes-bugs@ucw.cz">Holmes Maintainers</A>.</span>
+<span>No counters, no frames, no syntax errors.</span>
+</p>
+</div>
+
+<div id=body>
+<h1><a name="intro">Sherlock Holmes Search Engine</a></h1>
+
+<h2>What's that?</h2>
+
+<p>
+<em>Sherlock Holmes</em> is a universal search engine &ndash;
+a system for gathering and indexing of textual, image, and audio
+data (text files, web pages, ...), both locally and over the network.
+Better than explaining what does such a thing really mean, let's
+look at some of its features:
+</p>
+
+<h2><a name="features">Features</a></h2>
+
+<ul>
+<li>
+Gathers files via HTTP or from local files.
+</li>
+
+<li>
+Parses text files, HTML, PDF, MS Word, MS Excel, and several other formats
+using external parsers (such as PostScript).  Parses JPEG, PNG, and
+GIF images, stores their thumbnails, detects duplicates, and searches for
+similar images.  Parses MP3 and OGG files, and stores their ID3 tags.
+</li>
+
+<li>
+The whole system is modular, so adding your own data sources or parsers is just
+a matter of plugging in the right module (well, usually also writing it :) ).
+</li>
+
+<li>
+Works well in mixed charset environment.
+</li>
+
+<li>
+Considers multiple occurences of the same file (even with minor changes) a
+single document with multiple URL's.
+</li>
+
+<li>Site compression (the search server may only show the best 2 pages from one
+domain).</li>
+
+<li>Automatic page ranking (based on the links between the pages).</li>
+
+<li>New intelligent gatherer (it chooses which pages to gather according to
+their ranks, it is much faster and more scalable, and it can refresh pages much
+more often than the old gatherer from before v4.0).</li>
+
+<li>Splitting the index into independent areas (one search engine for a
+number of domains).</li>
+
+<li>
+Everything is highly configurable. You can write filtering rules in a special
+language which allows to tweak configuration variables depending on the
+document being processed.
+</li>
+
+<li>
+Searching of words, phrases, and boolean expressions.
+Searching in file names and link texts.
+</li>
+
+<li>
+Proximity search and proximity weighting of regular searches.
+</li>
+
+<li>
+Recognition of languages, easy integration of stemmers and synonymic
+dictionaries.
+</li>
+
+<li>
+Spelling checker based on word frequencies observed in the indexed
+data, hinting the user that his query might be misspelled.
+</li>
+
+<li>
+Search results include context in each document.
+</li>
+
+<li>
+Scales well to tens of millions of documents on normal PC hardware.
+</li>
+
+<li>
+User interface (the front-end) is completely separated from the rest of the
+system, making it easy to modify and also to embed the search engine in
+existing applications.
+</li>
+
+<li>
+Downloaded files and indices are compressed to save space.
+</li>
+</ul>
+
+<h2><a name="license">License</a></h2>
+
+<p>
+Currently, two versions of Holmes exist.
+The freely distributable version is licenced under the
+<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>
+(GPL).  Some libraries and support modules are distributed under the
+<a href="http://www.gnu.org/copyleft/lesser.html">GNU Lesser General Public
+License</a> (LGPL) and some example programs are public domain. In
+all such cases, it's clearly stated in comments at the start of the module.
+</p>
+
+<p>
+The commercial version of the search engine contains some additional features
+and you can get paid support for it.  If you are interested in it, please
+contact us.  The feature list follows:
+</p>
+
+<ul>
+  <li>Distributed gatherer (downloading documents much faster than any single
+  machine could do).</li>
+  <li>Distributed search server (serving documents at arbitrary load).</li>
+  <li>Connection with a catalog (human-administrated titles and keywords are
+  taken into account during the search, and displayed with the results).</li>
+</ul>
+
+<p>
+Also, donations for development of features you'd like to use are welcome. So
+much for advertisements :)
+</p>
+
+<p>
+If you want to incorporate <em>Holmes</em> in your applications or to use it for
+whatever non-standard purposes you'd like, please contact the <a
+href="#authors">authors</a> &ndash; licenses for such cases are available as well
+and in case of academic research and non-profit projects, they are usually
+provided free of charge.
+</p>
+
+<h2><a name="download">Download</a></h2>
+
+<p>
+The current version of <em>Holmes</em> is 4.0.
+You can download it via <a href="http://www.ucw.cz/holmes/download/">HTTP</a>
+and <a href="ftp://www.ucw.cz/pub/holmes/">FTP</a>. For instructions on installation,
+see <tt>doc/install</tt> in the archive. Debian packages are available as well.
+</p>
+
+<p>
+There is currently no mailing list of Holmes users, but you can find
+information about new releases at these pages and also in <a href="http://freshmeat.net/projects/holmes/">FreshMeat</a>.
+</p>
+
+<p>
+Several libraries from the Holmes project can be also used separately,
+so we have prepared a stand-alone library package. See the <a
+href='/libucw/'>libUCW home page</a> for more information.
+</p>
+
+<h2><a name="authors">Authors</a></h2>
+
+<p>
+In short: Holmes has been written by <a href="http://atrey.karlin.mff.cuni.cz/~mj/">Martin Mare&scaron;</a>
+and <a href="http://atrey.karlin.mff.cuni.cz/~robert/">Robert &Scaron;palek</a>.
+The development has been heavily sponsored by <a href="http://www.netcentrum.cz/">Netcentrum s.r.o.</a>
+which is also one of the most important users and works as an exclusive distributor
+of the <a href="#commercial">commercial version</a>.
+</p>
+
+<p>
+Here is the full story: Back in 1997, Martin Mare&scaron; wrote the first version
+called Sherlock 1.0 as his term project at <a href="http://www.mff.cuni.cz/">MFF UK</a>,
+but it somehow escaped from his control soon &ndash; in October 1997 it was
+indexing the whole <code>.cz</code> domain in cooperation with the Bajt company.
+</p>
+
+<p>The time slowly passed by, the author was busy working on other stuff,
+Bajt had its own problems and the whole project would have been almost forgotten
+weren't it for people from Netcentrum who were building a new Czech portal,
+wanted to use Sherlock for searching and were willing to sponsor its further
+development.
+</p>
+
+<p>
+After several years of successfully running Sherlock 1.2 on a couple of servers,
+Robert &Scaron;palek joined the "team" and together we decided to rewrite the
+whole project from scratch and change the whole architecture (confirming the
+ancient wisdom that every good program including TeX has to be rewritten at
+least once in its lifetime :) ). Unfortunately, we have been forced to delay
+the public release of this version for some time. So was it back in 2001.
+</p>
+
+<p>
+In September 2002, we have resurrected the freeely distributable version of
+Sherlock, but in the meantime Apple started distributing another program of
+the same name as part of their OS X, so we decided to rename the whole package
+to <em>Sherlock Holmes</em> (or Holmes) to avoid both confusion and trademark
+problems.
+</p>
+
+<p>
+In April 2009, we have moved most of the features from the commerial version to
+the free version, and released the package as version 4.0.  The main
+distinction between the two versions is now that the commercial version can
+work distributed over many computers, whereas the free version only supports a
+single machine.
+</p>
+
+<h2><a name="bugs">Reporting bugs</a></h2>
+
+<p>
+All reports of bugs or inconveniences and also ideas for new features (or
+patches implementing them :-) ) are welcome at <a
+href="mailto:holmes-bugs@ucw.cz">holmes-bugs@ucw.cz</a>.
+</p>
+
+<p>
+If you use Holmes to your pleasure, the authors will be glad to hear about
+your experience at the same address.
+</p>
+
+<h2 id="libs">Libraries</h2>
+
+<p>
+Many pieces of code developed originally for Holmes are now available
+as separate libraries for use in other projects. If you are interested,
+take a peek at <a href="/libucw/">the UCW Library</a>.
+</p>
+
+</div>
+
+</body>
+</html>

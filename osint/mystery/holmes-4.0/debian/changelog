@@ -1,0 +1,685 @@
+holmes (4.0) stable; urgency=low
+
+  A huge release moving most of the features from the commercial version to
+  the free version.  The following new major features are now supported:
+
+      * Site compression (the search server may only show the best 2 pages
+	from one domain).
+      * Automatic page ranking (based on the links between the pages). 
+
+      * New intelligent gatherer (it chooses which pages to gather according
+	to their ranks, it is much faster and more scalable, and it can
+	refresh pages more often than the old gatherer from before v4.0).
+      * Splitting the index into independent areas (one search engine for a
+	number of domains). 
+
+      * Extended image search: detection of near-duplicate images and
+	searching for similar images.
+      * Gathering audio files (in the MP3 and OGG format) and indexing their
+	ID3 tags.
+
+  Notable minor features include:
+
+      * Added parsers for ZIP files (processes the largest file from the
+	archive), and for XHTML and WML files.
+      * The indexer now supports multiple sources.
+      * The indexer resolver has been parallelized.
+      * Support for spelling typos caused by a wrong keybord layout.
+      * Language recognizer has acquired a tunable threshold, below which
+        the recognizer admits that it failed to recognize the language.
+	The default language tables now also include Russian.
+
+  Besides these changes, the codebase has been cleaned up and better separated
+  to a general UCW library and the actual search engine.  We have cleaned up
+  the interfaces of the UCW library to make it easier to use them in other
+  projects. Some of the changes were not backward compatible, but it should be
+  very easy to fix the callers.  Notable new library features include:
+
+      * The generic sorter module has been completely rewritten, the new
+	version is much faster and more general. It now lives in
+	lib/sorter/sorter.h, the old interface lib/sorter.h is gone. The array
+	sorter (lib/arraysort.h) now has a more powerful sibling in
+	lib/sorter/array.h, which is well suited for sorting of large arrays.
+      * A lot of new documentation has been written for the UCW library.
+      * New logging system capable of logging to multiple streams.
+      * The build system now supports both building locally in the `run'
+        directory and building for installation to a stable location.
+      * We now use pkg-config to build libraries (and the .pc files are
+	installed as a part of the library API), so the ever recurring
+	problems with ordering of linker parameters should be gone.
+      * A new fastbuf backend fb-direct has been added for direct I/O on
+	files.  Another fastbuf backend fb-pool can take care of writing to a
+	string allocated in a mempool.  The fb-file fastbuf backend is now
+	able to optimize buffering for backward reading and intensive seeking.
+      * Added a module for asynchronous direct I/O on files (lib/asio.h).
+
+ -- Martin Mares <mj@ucw.cz>  Thu, 26 Jul 2007 11:27:31 +0200
+
+holmes (3.11) stable; urgency=low
+
+  Incompatible:
+
+      * Changed format of Watson configuration files and location of downloaded
+        and parsed logs.
+      * Attributes are not longer limited to MAX_ATTR_SIZE.
+
+  Libraries:
+
+      * The libucw and libsh no longer define the following types: sbyte, word,
+        sword and addr_int_t. Please use s8, u16, s16 and uintptr_t instead.
+      * Fastbufs now work better on unseekable files. The seek callback returns
+        success, bseek() and bsetpos() dies if seek fails, bfilesize() returns
+        -1 if the file is unseekable.
+      * lib/fastbuf.h no longer includes <stdio.h>. If you need SEEK_xxx, please
+        include <stdio.h> or <unistd.h> yourself. If you need EOF, please use
+        a test for a negative number instead as stdio EOF doesn't have anything
+        in common with the fixed value of -1 used by the fastbufs.
+      * Fastbuf functions for reading and writing of multi-byte numbers have been
+        moved to lib/ff-binary.h. Specific number endianity can be requested.
+      * Unaligned access macros have been replaced by functions (old names kept
+        for compatibility) and they also have variants with specific endianity.
+        GET_U32_BE16 and GET_U32_16 have been removed as they are no longer used.
+      * Memory pools now support growing of the last allocated item and
+        saving/restoring states.
+      * Libgath has been split to libgath (without complex dependencies),
+        libparse (various content parsers) and libproto (dowloader).
+
+ -- Robert Spalek <robert@ucw.cz>  Thu, 26 Apr 2007 20:20:35 -0800
+
+holmes (3.10.1) stable; urgency=low
+
+  * Support for custom spelling sequences (for example double-letter
+    equivalents in Polish language).
+  * Added the "raw" analyzer for filtering of HTML documents with specific
+    substrings in their unparsed content.
+  * Better threading support in libucw and libsh.
+  * Improved bucket interface in libsh.
+
+ -- Martin Mares <mj@ucw.cz>  Mon, 18 Dec 2006 14:26:35 +0100
+
+holmes (3.10) stable; urgency=low
+
+  * Many optimizations in the indexer: resolver, ref-texts and everything related
+    to link graphs is now significantly faster. The scanner is now able to run in
+    multiple threads, achieving speedup almost 2 on a 2-way SMP system.
+  * In addition to subindices (handled by different search servers), every (sub)index
+    can be now split to several slices, handled by different threads of a single
+    search server in parallel.
+  * Added a general library for processing of images, capable of reading JPEG,
+    PNG and GIF, writing JPEG and PNG (and optionally everything supported
+    by GraphicsMagick) and performing basic operations like scaling really
+    quickly. Added an image gatherer based on this library.
+  * Basic libraries (libucw, liblang, libfilter and libanalyser) are now thread-safe.
+    See lib/THREADS for details.
+
+  Minor:
+
+  * Documented adding of new charsets and languages: doc/charsets and doc/lang-tables.
+  * Ported to Darwin (MacOS X).
+  * The filter language now supports bitwise operators.
+  * The scheduler now allows dynamically evaluated rules via the { ... } construct.
+  * The config file preprocessor now allows to include program output by using
+    the #pipe directive.
+
+ -- Martin Mares <mj@ucw.cz>  Sun,  5 Nov 2006 23:51:31 +0100
+
+holmes (3.9.1) stable; urgency=low
+
+  * Fixed the Debian package by adding a missing shell library.
+
+ -- Robert Spalek <robert@ucw.cz>  Fri, 28 Jul 2006 14:08:12 +0200
+
+holmes (3.9) stable; urgency=low
+
+  * Completely rewritten the configuration mechanism; see doc/config.  The new
+    configuration language is much stronger and easier to use:
+    - added support for arrays, link-lists, bitmaps, and lookup tables
+    - it is possible to define parsers for user-defined types, and callback
+      functions for commit-hooks
+    - configuration files can now be reloaded without restarting the program
+    - all programs now support a new switch --dumpconfig
+    The syntax of the configuration files has only been changed a little, and
+    the central file cf/sherlock has been split into many smaller files.
+
+  * Gatherer:
+
+    o Added a flexible analyser library that can analyse each input document,
+      compute its properties (e.g., auto-detected language, the presence of
+      forbidden substrings, IP range of the document server, ...), and store
+      them into document attributes.  The analysers are only run if requested
+      or the document has been updated since the last run.
+    o The document language reported by the server (or mentioned in the header
+      of the HTML document) and the auto-detected language are now stored in
+      different attributes.  Reported languages are validated and normalized.
+      The document language is available to the filters, hence they can base
+      their decisions on that even in the gatherer.
+    o The filters can decide what error code will be used for rejected URL's.
+    o The URL of embedded Flash movies is included in the MD5 of the document,
+      hence less false title page merges should occur.  A few more META
+      attributes are ignored by the HTML parser.
+    o Allow relative URL's in META refresh directives.
+    o Added support for asterisks in cf/url-equiv.
+    o Added support for black-listing charsets.
+    o Cleanup: format parsers and their error codes, the main gatherer module,
+      queue keys vs. server keys.
+
+  * Indexer:
+
+    o The handling of document labels by the indexer has been cleaned up and
+      it is fully configurable now.  The indexer can now propagate sub-objects
+      to the per-URL labels.
+    o Added support for quick black-listing pages in the generated index.
+
+  * Search server:
+
+    o Added a switch ANY that allows the search server to browse all documents
+      (an error message would be generated otherwise).
+    o The bonus computed by the near-matcher is relative to the word weights.
+    o Added support for keyphrases: each simple query is merged into a single
+      string and searched for in special attributes of large weight.
+    o The characters '*' and '?' may or may not denote wildcards in search
+      server queries depending on a switch.
+    o The search server can search documents restricted to IP addresses or
+      predefined IP address ranges.
+    o Interface to custom matchers slightly improved.
+
+  * Utilities:
+
+    o Removed old utilities for sending and receiving indices; they are fully
+      replaced by shcp.
+    o Added a new speed benchmark utility.
+    o Added several new graphs to Watson.
+
+  * Other:
+
+    o All documentation, configuration files, messages, and log files are now
+      encoded in the UTF-8 charset.
+    o Major cleanup of the library: Makefiles, configuration files and
+      post-processor (see doc/configure), substring matcher KMP, and fastbufs.
+      Add handy string functions operating on the stack, memory pools, and
+      growing buffers.
+    o Several bugfixes in the indexer and search server.
+
+ -- Robert Spalek <robert@ucw.cz>  Tue, 25 Jul 2006 00:57:45 +0200
+
+holmes (3.8) stable; urgency=low
+
+  * Decreased memory requirements of several indexer modules.
+  * Each generated index contains a version number.
+
+  * The search server labels each meta attribute by two new flags:
+    (1) whether the attribute alone would match the query,
+    (2) whether it has been cropped before dumping.
+  * Added a new search server command DUMP that dumps the context of a card
+    found previously by the command LIST.
+  * A new fulltext matcher in the search server saves memory and allows more
+    precise dumping of the context of matching words in long documents.  The
+    list of best matches has been removed from the output of EXPLAIN.
+  * Improved caching of queries in the search server.
+  * The attribute DOMAIN in the query matches all sub-domains of the document
+    domain of level at least 2.
+  * Configuration directives for declaring databases the search server should
+    use have been simplified.
+
+  * The fast index copying utility shcp has been finished.
+  * Improved memory mapping on 64-bit architectures.
+  * Improved control scripts pass properly configuration options.
+  * Huge cleanup of the library and its header files.  Most server programs now
+    use a generic module for their main loops.
+  * Better handling of non-indexed words all around the code.
+
+ -- Robert Spalek <robert@ucw.cz>  Mon, 20 Feb 2006 08:10:44 +1100
+
+holmes (3.7) unstable; urgency=low
+
+  * Added a utility `shcp' for copying very fast simultaneously into several
+    target machines. Needs more work, though.
+  * Many improvements to Watson, it also has its own config file now.
+  * The 2nd stage of the indexer is able to work on complete cards as well
+    (in previous versions, it always assembled the cards from bits provided
+    by the 1st stage). This allows cards from an existing index to be
+    modified and re-indexed, giving a very limited form of incremental
+    indexing. However, no general tool for automating this process is
+    available yet.
+  * The indexer can generate the resulting index split to several
+    pieces according to file types or card ID's. Merging of results
+    from different pieces is currently left to the front-end.
+  * Rewritten the catalog interface. Catalog information now forms
+    a proper bracketed sub-object, simplifying a lot of things and
+    also allowing multiple catalog records to be attached to a single card.
+  * Site compression has been rewritten, the external interface and
+    also the filters use site names instead of internal site ID's.
+    The SITE keyword in the query language accepts both site names
+    and site hashes.
+  * Added the `bgrep' utility, which is basically a grep working on the
+    tree structure of Holmes objects.
+  * Lots of optimizations in the search server. This involved major
+    restructuring of sherlockd, so the customization hooks have changed.
+    See doc/changes for details.
+  * Bugfixes and cleanups.
+
+  Minor:
+
+  * Added aliases for charset names, including the most common misspellings.
+  * Improved cooperation with HTTP proxies. They no longer influence the
+    queue keys nor do they pass through the access lists.
+  * Added lots of unit tests, but they still don't cover all library
+    functions.
+  * The indexer is now able to resume operation after being interrupted
+    in more cases.
+  * Better configurability of match context sizes for meta-data.
+  * Introduced a user-definable comment which is sent as a part
+    of the HTTP User-Agent header, allowing to distinguish between
+    different incarnations of Holmes.
+  * Improved charset detection.
+  * Holmes now works on the AMD64 architecture (involved fixing some bugs
+    in data types and in handling of va_list's).
+  * Watson now compiles with Perl 5.8 (involved adaptation to newer Perl XS).
+  * Improved speed benchmark, idxdump and other debugging tools.
+  * The <match>'es reported by sherlockd in match contexts now contain
+    a set of ID's of the matching words represented as a bitmap. Also,
+    even substring matches in URL's can be highlighted.
+
+ -- Martin Mares <mj@ucw.cz>  Fri, 30 Sep 2005 20:44:23 +0100
+
+holmes (3.6) stable; urgency=low
+
+  Minor:
+
+  * Labels and cards can now contain nested objects.  The code in cards.c
+    that selects the URL's, redirects, and reftexts to be printed has been
+    greatly simplified and the selection rules have been improved.
+  * Filters are only called in scanner and not in mklex and chewer to save
+    time and prevent the 'filtering rules changed' message.
+  * The indexer now deletes some large files earlier to save space.
+  * HTTP downloader copes with invalid 304 'Not modified' messages.
+  * Added support for windows-1251 charset (Russian).
+  * Cleanup of bits in card attributes.
+  * Several bugfixes and cleanups.  gcc-4.0 is supported now.
+
+ -- Robert Spalek <robert@ucw.cz>  Mon, 20 Jun 2005 17:50:16 +0100
+
+holmes (3.5) stable; urgency=low
+
+  Major:
+
+  * The format of the references file has been changed.  The positions are
+    no longer limited by 4K words, but they can grow up to 2^23. Moreover,
+    the whole file is encoded using a very simplified Huffman encoding,
+    so it should be even smaller.  Introduced switch CONFIG_32BIT_REFERENCES,
+    which controls whether to use 16-bit or 32-bit word positions.
+  * Stemming interface rewritten.  Also, added two fairly general table-driven
+    stemmers (stem-table and stem-dict), the former using a fairly simple and
+    very fast trie-based structure, the latter based on a sophisticated
+    pattern recognition scheme, which gives much smaller dictionaries at
+    expense of speed.  Utilities for generating your own dictionary from
+    input text files are included.
+  * Makefiles have been rewritten and they support fully separated
+    source trees and object trees.  The configuration system has also been
+    rewritten; most of the stuff is set by the configure script now.
+
+  Minor:
+
+  * Libraries and include files can be installed for use by external programs.
+  * Word types have been renumbered and 0 is no longer a reserved
+    value (card version incremented).  The indexer automatically upgrades old
+    cards to the new format.
+  * Objects (sets of attributes) can be nested.  All code has been cleaned up
+    to us this ability.
+  * HTTP downloader can add user-defined headers and HTML META tags can
+    generate user-defined object attributes.
+  * Documents can be downloaded via an HTTP proxy.
+  * The indexer filters now has read/write access to the language detected by
+    the recognizer.
+  * Word/meta/string types in the query can be set for the whole query, its
+    parenthesized part, or a single word.
+  * The search server protocol has been changed a little; a "+++" trailer has
+    been added for detection of truncated replies.  The format of regular and
+    control replies is unified.
+
+  * Many bugfixes, cleanups, and adjustments for newer versions of gcc.
+    64-bit portability attempted.
+
+ -- Robert Spalek <robert@ucw.cz>  Mon, 20 Jun 2005 17:26:16 +0100
+
+holmes (3.4.1) stable; urgency=high
+
+  * An essential bugfix in the gatherer concerning compressed buckets.
+
+ -- Robert Spalek <robert@ucw.cz>  Wed, 23 Feb 2005 17:30:00 +0100
+
+holmes (3.4) stable; urgency=low
+
+  * License changed from proprietary to GPL!  The free version is hence no
+    longer limited to 100k documents.
+
+  Major new features and changes:
+
+  * Buckets and cards are now stored in a new format designed for fast
+    zero-copy processing.  Moreover, the gatherer and the indexer can compress
+    the bucket file and cards using an included very fast compression library
+    LiZaRd, saving about 30% of their size.
+  * A lot of optimization work has been done, especially in the following
+    modules: general sorter, bucket shakedown, computation of signatures, and
+    chewer.  The usage of regular expressions at time-critical places (URL
+    keywords recognition and testing session id's) has been abandoned in
+    favour of hard-encoded C-routines; the speedup is about 10x.  The memory
+    requirements of indexer have been decreased, and a partial sorting (with
+    some more seeking afterwards) is used where appropriate.  The whole
+    Sherlock has scaled up; we have successfully used it on 70M documents.
+  * Texts of HTML links (reference texts) can now be indexed together with the
+    text of a page.  They are attached at the end of the card together with
+    the URL of the referring page.
+  * Big cleanup in the customization interface; see doc/changes.  A new "bare"
+    customization (as simple as possible) added.  Introduced late matchers,
+    custom matchers, and custom statistics.  You can define your own filter
+    functions.
+
+  Minor new features and changes:
+
+  * Gatherer:
+    o HTML parser recognizes inline META robot control tags and it implements
+      the new "rel=nofollow" attribute in tags containing links.  It also
+      tries to avoid duplicate ALT and TITLE reference texts.
+    o PDF parser supports new encryption formats.  Added a pdfdump utility for
+      debugging.  Several problematic PDF documents are parsed correcly now.
+      The parser has been split into a few modules and cleaned up.
+    o Computation of a queue key (QKEY) works properly even for hosts with
+      multiple IP-addresses.
+    o Refreshing of documents is improved; we now check the differences
+      against the original version before storing the new version.
+    o The new charset guesser is more resistant against a few characters in a
+      different charset inserted in the middle of the page (such as banner
+      texts).  Content-type guesser logic is improved, too.
+    o Added charset recognizer configuration for the Polish language.
+    o Conformance to standards improved (URL's, HTTP protocol), but we also
+      try to be more tolerant to others breaking the standards (especially in
+      date parsing).
+    o When a filter tries to reject downloading of robots.txt, its decision is
+      ignored. Otherwise all sorts of strange things happen.
+
+  * Indexer:
+    o Indexer can now generate an index from a plain text file with buckets
+      separated by an empty line instead of a bucket-file.
+    o Several common singletons (such as & and +) added as context words.
+    o Changed the format of the attributes file: file-type and language bits
+      redistributed.
+    o ireport reports filetype, language, and domain statistics.
+
+  * Search server:
+    o Search server can search on multiple indices, which are merged on-line.
+    o Added a new CONTEXT FULL mode which dumps all the text we remember.
+    o Added a sort mode which only sorts on a given attribute, but it ignores
+      the Q-factor.
+    o Added a hydra mode for SMP-systems, where several concurrent processes
+      are run.
+    o Fixed calculation of the 2nd best match.
+    o Important bugfixes: no more stack overflows and SIGBUS's.
+    o The example front-end works again.
+
+  * Optimizations:
+    o Several regular expression backends supported and one of them (known to
+      be _relatively_ stable and fast) engine imported to the source tree and
+      it is set as default.  However, as said above, we do not trust it anough
+      and rather rewrote some tests into C.
+    o Filters: Added a new interval test: if (a =# 1 .. 10).  Switch commands
+      consisting of == and =# tests are optimized to logarithmic complexity
+      using red-black binary search trees.  We also added a new general
+      utility for testing filters in various modes.
+
+  * Cleanups:
+    o Major cleanup of all libraries. The old `libsh' has been split to a fairly
+      generic `libucw' and parts specific for Holmes.  The charset library has
+      been almost rewritten.
+    o Cleanup of makefiles and configuration files.  The build system no longer
+      writes into the source directories.
+    o Numbers in configuration files can be specified in various units.
+    o Improved and optimized debugging utilities (buckettool, idxdump, and
+      dump-card).
+    o All daemons create their locks files in a special lock-directory.
+    o Added a brief introduction to the coding style (doc/codingstyle).
+    o Added an automatic unit-testing framework (try `make tests').
+    o Watson rewritten.
+
+  * Other important issues:
+    o Bugfix for some (especially Fedora) kernels: Sherlock now copes with
+      pointers close to the 4GB limit.
+    o Building of shared libraries now uses `gcc -shared' instead of talking
+      directly with the linker, making shared libraries work on newer systems.
+
+  * As usual, we have done many more bugfixes, optimizations, cleanups, and
+    code polishing.
+
+ -- Robert Spalek <robert@ucw.cz>  Tue, 22 Feb 2005 15:27:00 +0100
+
+holmes (2.6.2) stable; urgency=low
+
+  * Released a parser for PDF documents, previously only available in
+    the commercial version.
+
+ -- Martin Mares <mj@ucw.cz>  Sun,  8 Feb 2004 17:15:34 +0100
+
+holmes (2.6.1) stable; urgency=low
+
+  * Released as stable version, no changes against -beta2.
+
+ -- Martin Mares <mj@ucw.cz>  Wed, 21 Jan 2004 14:22:10 +0100
+
+holmes (2.6.0-beta2) unstable; urgency=low
+
+  * Bugfix in refs.c: type restriction.
+  * Customization: added meta-type names URLWORD and FILE.  They are always
+    matched without accents.
+
+ -- Robert Spalek <robert@ucw.cz>  Mon, 15 Dec 2003 13:48:00 +0200
+
+holmes (2.6.0-beta1) unstable; urgency=low
+
+  * Fixed bug in lexmapper and cards.c improperly handling words with
+    ligatures.
+  * Fixed magic complexes in search-server.
+  * New auto-accent rules for words taken from URL and 1 auto-accent
+    bugfix.
+  * EXPLAIN command prints also wordtypes of the words.
+  * A few other cleanups.
+
+ -- Robert Spalek <robert@ucw.cz>  Mon,  8 Dec 2003 16:43:00 +0200
+
+holmes (2.6.0-alpha3) unstable; urgency=low
+
+  * Fixed bug in lexmapper causing not indexing of context words after break.
+
+ -- Robert Spalek <robert@ucw.cz>  Tue,  2 Dec 2003 14:14:00 +0200
+
+holmes (2.6.0-alpha2) unstable; urgency=low
+
+  * Script for finding equivalent sites (cf/url-equiv) updated.
+  * A few tiny changes and fixes: penalization messages in cards, URL keywords
+    handled properly for context words, urlkey does not remove WWW-prefix
+    twice, cards do not crash on long documents, dump-card calls less properly,
+    and url-equiv not present in CVS.
+
+ -- Robert Spalek <robert@ucw.cz>  Thu, 27 Nov 2003 17:50:00 +0200
+
+holmes (2.6.0-alpha1) unstable; urgency=low
+
+  * Added interface to external parsers (e.g. application/postscript or
+    application/msword) and added patterns for file recognition of them.  The
+    parsers are commented out in the default configuration.
+  * Fixes in gatherer: guessing content types according to patterns, resolving
+    IP addresses, and HTML validation.
+  * Charset scripts polished.
+  * Added support for Unicode ligatures.
+
+  * New module keywords collects URL and Filename keywords, prunes them
+    according to a lot of criteria, and attaches them to the labels of the
+    cards.
+  * Documents can be penalized if they contain not title, no out-going links or
+    too short contents.  Also, if the document is written mostly in high valued
+    word-types (headers, bold text), we call it swindling and remap it to
+    normal text.
+  * History of document weight changes done in indexer modules (including all
+    penalizations) is recorded in the output card.
+  * Giant classes can be detected also on the number of incoming redirects.
+  * '@' is now considered as a word, hence searching in e-mail addresses is
+    easier now.  Indexer uses a new general module alphabet for lexical
+    mapping.
+  * Introduced redirect brackets (y ...) inside URL brackets (U ...).  The
+    ouput of the search server is much cleaner now, because all information
+    assigned to the URL is placed in the corresponding block.  The format of
+    several internal indexer files has been changed.
+  * Indexer script has been polished and you can specify file detetion level.
+  * Fixes in indexer: backlinker split into 2 parts (each called at different
+    stage), document is not cut so aggresively when dumped into cards, context
+    dependend words, max_chain_len deleted, format of log files, and mkgraph
+    rewritten almost from scratch and it properly merges vertices that are
+    merged by cf/url-equiv.
+
+  * cards.c: shorter output by skipping superfluous <break>'s and renaming some
+    attributes, adapted to redirect brackets, which allows proper word
+    positioning, and weighting of URL's and redirects tuned a lot and can use
+    pagerank.
+  * query.c: changed reporting of per-filetype stats and number of matched
+    documents.  Partial answer mode changed.
+  * refs.c: second match calculation and EXPLAIN messages improved.
+  * words.c: all found lemma's of search words.
+
+  * A few fixes in the library: partmap.
+  * Totally improved dump-card: can convert between ID<->OID, resolve URL's
+    both from bucket-file and from search server, find duplicates, links, ...
+  * idxdump and objdump: use fastbufs, adapted to the new formats, better
+    formatting of cards and charset conversion.
+
+ -- Robert Spalek <robert@ucw.cz>  Mon, 24 Nov 2003 17:30:00 +0200
+
+holmes (2.5.0-alpha2) unstable; urgency=low
+
+  * WWW-prefix hack: gatherer processes better redirects between different
+    URL's with the same urlkey, e.g. domain.cz and www.domain.cz.
+  * cards hack: cut URL records that are too long.  It can occur for huge
+    equivalence classes that have gatherer too many catalog data.
+  * cards fix: handle better words without a position instead of inheriting the
+    position of the last word.
+
+ -- Robert Spalek <robert@ucw.cz>  Mon, 24 Nov 2003 17:25:00 +0200
+
+holmes (2.5.0-alpha1) unstable; urgency=low
+
+  * Implemented priority queueing in the gatherer. Priorities are calculated
+    according to document ages and they can be altered by the filters. Gathering
+    should run much smoother now. Also, gatherer queue keys are now acesssible
+    by the filters.
+  * Introduced a table of equivalent servers which is used by both the gatherer
+    and the indexer.
+  * Added tables for many character sets including the whole ISO-8859-x repertoire.
+  * A lot of optimizations in the search server, some of them needed changes
+    of index file formats.
+  * Replaced indexing of word complexes (word + pre-/postpositions) by a much
+    more flexible and faster mechanism of context-dependent words.
+  * Reworked calculation of document weights. The scanner now assigns
+    Indexer.DefaultDocumentWeight to every document and modifies it according
+    to a bonus defined by the filters (see bonus and final_bonus in doc/filter).
+    Other indexer modules can contribute their bonuses and penalties as well.
+    The history of weight calculation for every document is tracked in its
+    "W" attribute to simplify debugging.
+  * Document titles are accessible to the filters now.
+  * Meta tags for robot control can now also use "noarchive" as Google does.
+    This tag is just recorded in the object attributes and propagated to the
+    front-end which should avoid offering the link to full document text
+    in such cases.
+  * Added EXPLAIN mode to the search server in which it dumps details of
+    weight calculations for each document. However, this incurs a slight
+    overhead to processing of all queries even if EXPLAIN is switched off,
+    so this feature is available only if CONFIG_EXPLAIN is enabled in config.mk.
+  * Added the Watson Monitoring System which replaces the ancient scripts
+    for parsing of logs and drawing of performance graphs.
+  * Query language: LINK has been renamed to EXT and REF aliased to LINK
+    to be compatible with other search engines.
+  * Changed interface to customization modules. Each customized version
+    now dwells in its own directory which should be linked to "custom"
+    in the package root. The config.mk has been moved to this directory.
+    The free version also acts as one of the customizations.
+  * Added generic red-black trees and binomial heaps to the library.
+  * Debugging utilities have been moved from utils/ to debug/.
+  * As usually, fixed a lot of bugs and sped many modules up.
+
+ -- Martin Mares <mj@ucw.cz>  Fri,  3 Oct 2003 19:12:35 +0200
+
+holmes (2.4.1) stable; urgency=low
+
+  * Configuration files are now truly preprocessed during installation
+    and they can contain blocks conditional on config.mk switches.
+  * Added automatic detection of languages based on statistical methods,
+    including a utility for automated tuning according to a large corpus.
+  * Better processing of framesets -- you can choose to either use the
+    noframe version like before or to treat the page as a redirect to
+    the frame containing the largest amount of text.
+  * Stemming and lemmatization. This release contains only the basic
+    Porter's stemmer for English, but other stemmers can be added in
+    a modular fashion.
+  * Use of synonymic dictionaries.
+  * Meta information has been separated from the main text of the document
+    and its weighting can be much finer.
+  * Spelling checker based on frequencies of words in the indexed data.
+  * Finer weighting of word and phrase matches.
+  * Speed optimizations of the filter interpreter and also on many other
+    places.
+  * Better locking strategy of the gatherer database -- read-only queries
+    can be done even if the gatherer is running, although the consistency
+    of query results is not guaranteed.
+  * Automatic recovery of gatherer databases after incorrect shutdown.
+  * All replies of the search server are now explicitly structured using
+    bracket attributes (see doc/objects), no need to use heuristic rules
+    to group them. Also updated the front-end library to make use of that.
+  * More robust HTML parser (added several work-arounds for common errors).
+  * Added an "ireport" utility for generating reports on equivalence classes
+    of documents in the generated index.
+  * Lexicon configuration is now stored to the index, so it's no longer
+    needed for the search server to run with the same configuration as
+    the indexer.
+  * Added generic sorting routine generator to the library
+  * Searching according to file type and other parameters implemented.
+  * Rewritten core of the reference processing in the search server, giving
+    better performance and it will be much easier to add new weighting
+    rules local for words and index compression now.
+  * Lots of minor bug fixes and performance tweaks as usually.
+
+ -- Martin Mares <mj@ucw.cz>  Mon,  2 Jun 2003 21:29:51 +0200
+
+holmes (2.3.1) unstable; urgency=low
+
+  * Tuned default values of configurable parameters and improved config
+    file comments.
+  * New near matcher giving much better results.
+  * Filter language: "include" directive added.
+  * Query language: SORTBY CARDID added.
+  * Added a database recovery utility (grecover).
+  * Minor bug fixes and improvements.
+
+ -- Martin Mares <mj@ucw.cz>  Tue, 17 Dec 2002 15:12:01 +0100
+
+holmes (2.3.0-alpha1) unstable; urgency=low
+
+  * An alpha pre-release of Holmes 2.3.
+  * Memory mapping of files is now available.
+  * All libraries are now shared.
+  * Minor bug fixes.
+
+ -- Martin Mares <mj@ucw.cz>  Fri, 11 Oct 2002 13:35:12 +0200
+
+holmes (2.2.1) unstable; urgency=low
+
+  * Debian package by Robert.
+  * Build for i386 by default.
+  * Added support for HTTP authentication.
+  * More work on the fastbuf library to speed it up. Also added a
+    memory mapped file access module, but it isn't used anywhere yet.
+  * Updated installation guide.
+
+ -- Martin Mares <mj@ucw.cz>  Thu,  3 Oct 2002 23:00:37 +0200
+
+holmes (2.2.0) unstable; urgency=low
+
+  * First public release.
+
+ -- Martin Mares <mj@ucw.cz>  Tue, 24 Sep 2002 22:06:12 +0200

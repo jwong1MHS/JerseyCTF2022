@@ -1,0 +1,26 @@
+# Bare configuration of Sherlock, which includes only the absolute minimum
+# of modules. Good starting point if you wish to use Sherlock for indexing
+# of databases. Look at sherlock/default.cfg for the meaning of the switches.
+
+Set("CUSTOM_DIR" => "customs/bare");
+
+Set("CONFIG_BARE");
+UnSet("CONFIG_GATHERD");
+UnSet("CONFIG_SHEPHERD");
+UnSet("CONFIG_SHEPHERD_PROTOCOL");
+Set("CONFIG_INDEXER");
+Set("CONFIG_SEARCH");
+Set("CONFIG_LIBLANG");
+UnSet("CONFIG_LARGE_FILES");
+UnSet("CONFIG_LASTMOD");
+UnSet("CONFIG_FILETYPE");
+UnSet("CONFIG_LANG");
+UnSet("CONFIG_SPELL");
+UnSet("CONFIG_MAX_CONTEXTS");
+UnSet("CONFIG_32BIT_REFERENCES");
+
+# Keep turned on if debugging
+Set("CONFIG_DEBUG");
+
+# Return success
+1;

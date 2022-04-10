@@ -1,0 +1,35 @@
+# Sherlock configuration with most tracing turned on
+
+Include cf/sherlock
+
+Gather.TraceDecode	1
+Gather.TraceResolve	1
+GatherD.TraceThreads	1
+GatherD.TraceRefs	10
+GatherD.DumpFullObjs	1
+HTTP.Trace		1
+Charset.Trace		10
+Charset.LogErrors	2
+Content.Trace		1
+Parse.Trace		1
+HTML.LogMetas		2
+PDF.Trace		1
+Robots.Trace		1
+Expire.Trace		1
+Sorter.Trace		1
+Indexer.Trace		10
+SiteFinder.Trace	1
+Keywords.Trace		1
+Weights.Trace		1
+UFALMorph.Trace		1
+FileSend.Trace		1
+ShepherD.TraceRefs	1
+ShepherD.PlannerStats	1
+ShepherD.SelectStats	1
+ShepMaster.Trace	2
+ShepReap.TraceProtocol	1
+ReapD.Trace		2
+Mux.TraceAlloc		1
+Mux.LogMaintenance	2
+Analyser.Trace		1
+FBAtomic.Trace		1

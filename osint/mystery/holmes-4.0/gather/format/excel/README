@@ -1,0 +1,9 @@
+SHERLOCK MS-EXCEL PARSER
+
+(c) 2004 Tomas Holusa <tomas.holusa@netcentrum.cz>
+
+This Sherlock MS-Excel parser was created by modifying `xlhtml' - project
+released under GPL, version 0.5, uses `cole' library version 2.0.1
+
+Author of xlhtml: Charles Wyble <jackshck@yahoo.com>
+Author of cole: Charles Wyble <jackshck@yahoo.com>

@@ -1,0 +1,11 @@
+# pkg-config metadata for libanalyser
+
+libdir=@LIBDIR@
+incdir=.
+
+Name: libanalyser
+Description: Sherlock analysers
+Version: @SHERLOCK_VERSION@
+Cflags: -I${incdir}
+Libs: -L${libdir} -lanalyser
+Requires: @DEPS@

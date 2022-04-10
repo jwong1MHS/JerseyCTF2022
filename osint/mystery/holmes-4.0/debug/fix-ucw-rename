@@ -1,0 +1,15 @@
+#!/bin/sh
+# Fix includes after the big libucw rename
+
+set -e
+find . -type f -and -name "*.[chylk]" -and -not -path "./obj/*" -and -not -path "./run/*" | while read N ; do
+	echo "$N"
+	sed -i~ '
+		/^# *include "lib\// {
+			s@lib/@ucw/@
+		}
+		/^# *include "ucw/ {
+			s@arraysort\.h@sorter/array-simple.h@
+		}
+	' $N
+done

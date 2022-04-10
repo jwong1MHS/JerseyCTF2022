@@ -1,0 +1,67 @@
+# Filter used when gathering a corpus for lang-tables
+#	(c) 2003, Robert Spalek <robert@ucw.cz>
+#
+#	This file is NOT installed anywhere.  It is stored in GIT for
+#	re-production purposes only.
+#
+#	lang-tables-starturls is a companion of this file
+
+#use `queue_bonus=10000;` if some sites have too few documents
+user_mark=1;
+string domain;
+domain = standardize_domain(host);
+switch domain {
+	case =** "*.centrum.cz",
+		=** "*.idnes.cz":
+		language = "cz";
+		accept;
+	case =** "*.centrum.sk",
+		=** "*.zoznam.sk":
+		if path =** "*inglise*" { reject; }
+		language = "sk";
+		accept;
+	case =** "*.index.hu":
+		if path =** "/en/*" { reject; }
+		language = "hu";
+		accept;
+	case =** "*.gazeta.pl":
+		language = "pl";
+		accept;
+	case =** "*.spiegel.de",
+		=** "*.berlin.de":
+		if path =** "/international/*" { reject; }
+		if path =** "*english*" { reject; }
+		if path =** "*_en.*" { reject; }
+		language = "de";
+		accept;
+	case =** "*.planet.nl",
+		=** "*.nieuws.nl":
+		if host =** "*tucows.planet.nl" { language = "en"; accept; }
+		language = "nl";
+		accept;
+	case =** "*.bbc.co.uk",
+		=** "*.cnn.com":
+		language = "en";
+		accept;
+	case =** "*.lemonde.fr":
+		if path =** "/en/*" { reject; }
+		if path =** "/sp/*" { reject; }
+		language = "fr";
+		accept;
+	case =** "*.libero.it":
+		if host =** "*tucows.libero.it" { language = "en"; accept; }
+		if path =** "/ENG/*" { reject; }
+		language = "it";
+		accept;
+	case =** "*.bcn.es":
+		if path =** "/english/*" { reject; }
+		language = "es";
+		accept;
+	case =** "*.gazeta.ru":
+		if path =** "/english/*" { reject; }
+		language = "ru";
+		accept;
+}
+section_hard_max=100;
+section_soft_max=100;
+reject;

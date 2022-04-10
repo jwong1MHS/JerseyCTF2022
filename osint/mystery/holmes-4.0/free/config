@@ -1,0 +1,21 @@
+# Configuration of the free version Sherlock.
+# Look at sherlock/default.cfg for the meaning of the switches.
+
+Set("CUSTOM_DIR" => "free");
+
+Set("CONFIG_FREE");
+Set("CONFIG_SHARED");
+Set("CONFIG_CUSTOM_FILTER" => "free/filter/builtin.h");
+Set("CONFIG_SHEPHERD_PROTOCOL");
+Set("CONFIG_SHEPHERD");
+UnSet("CONFIG_GATHERD");
+
+# Everything else is on its default values, which means a pretty minimalistic
+# installation
+
+# If you want to enable some extended features, such as site compression, page
+# ranking, or non-standard parsers, enable those features here.  Their names
+# are listed in ucw/default.cfg and sherlock/default.cfg.
+
+# Return success
+1;

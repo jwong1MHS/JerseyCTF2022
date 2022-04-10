@@ -1,0 +1,316 @@
+Sherlock Holmes 3.x -- introduction and installation guide
+==========================================================
+
+0. Prerequisities
+~~~~~~~~~~~~~~~~~
+To build and run Sherlock, you need:
+
+  o  The GNU toolchain (gcc 4.0 or newer is required)
+  o  GNU bison and flex
+  o  GNU bash 2.0 or newer
+  o  Perl (any reasonably new version; 5.6.1 works for me)
+  o  ZLib (newer than stone-age)
+  o  pkg-config
+  o  Linux or Darwin (porting to other systems should be easy)
+  o  GNUPlot 4.0 or newer (if you want to use Watson to draw nice graphs
+     with various statistics)
+  o  Libjpeg, libpng and libungif to support all image formats
+     (jpeg, png and gif). These libraries can be replaced by libgif (gif)
+     and GraphicsMagick >= 1.1 (jpeg, png, gif and possible more formats).
+     See sherlock/default.cfg for related configuration switches.
+  o  Mutt mail client for mail reports in some scripts
+     (any reasonably new version; 1.5.9 works)
+  o  GNU readline (optional, only non-free version of Sherlock)
+  o  asciidoc (if you want to compile documentation)
+
+If you are installing Sherlock as root, probably the best and most secure way
+is to create a special user account, su to this user for the whole installation
+and also run all programs as this user.
+
+1.a. Compiling
+~~~~~~~~~~~~~~
+First of all, you need to run the `configure' script to set up compile-time
+options. If you want to compile Sherlock with the default feature set,
+useful for indexing the Web, just use:
+
+	./configure free
+
+If you need to set anything unusual, please consult doc/configure for details.
+
+The defaults determined by the configure script should be correct on Linux/i386,
+on other architectures you will probably need to tweak the CPU detection section
+in ucw/perl/UCW/Configure/C.pm and possibly also the typedefs in ucw/config.h.
+
+Then run
+
+	make
+
+which builds the whole package in the "run" directory and you can play there.
+If you want to install Sherlock anywhere else, just use
+
+	make install INSTALL_DIR=/where/to/install
+
+If there is already an installation at the specified location, make install will
+replace the binaries and show differences in config files, prompting you about
+replacing them.
+
+1.b. Installing as a package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you have installed Sherlock as a (Debian) binary package, you will need to
+instantiate it first.  (It is possible to run Sherlock in many instances on one
+computer at the same time.)  Each instance dwells in its private directory
+subtree.  To create a new instance, just run
+
+	holmes-instantiate <target_directory>
+
+This will create everything and print further instructions.  The same command
+can be also used for upgrading an instance -- if you have upgraded the binary
+package, you still need to run
+
+	holmes-instantiate -u <target_directory>
+
+for all instances running at the computer.  All daemons of the upgraded
+instance must be stopped at that time, of course.  Configuration changes are
+preserved.  If you do not alter the original configuration files in directory
+cf.orig, the configuration files can be automatically upgraded too.
+
+2. A brief look around
+~~~~~~~~~~~~~~~~~~~~~~
+Now, take a look at the run tree you've built. It contains several
+subdirectories with commands, configuration and data files:
+
+  bin/		programs and utilities
+  cache/	various cache files
+  cf/		configuration files
+  db/		database files of the gatherer
+  index/	main index
+  lib/		libraries used by the programs
+  lock/		lock files, pid files and similar stuff
+  log/		log files
+  tmp/		temporary files
+
+Whenever you run any Sherlock command, make sure your current directory
+is the root of the run tree -- all files are accessed relative to it,
+allowing you to run multiple instances of Sherlock at the same machine.
+
+The whole system consists of four principal components:
+
+  gatherer	gathers documents (e.g., by spidering the WWW), parses
+		them and stores the results to the gatherer database.
+
+		There are two choices for a gatherer. The first, preferred one,
+		is shepherd. The second is gatherd, kept for historical reasons.
+		This document describes the shepherd use only. If you prefer
+		gatherd for any reason, look into doc/install-gatherd.
+
+		The shepherd is supervised by bin/shepherd which, according to
+		cf/shepherd, updates the database in cycles, expiring the old
+		pages and refreshing them.
+
+  indexer	takes the gatherer database and generates an index from it.
+		Supervised by bin/indexer which is usually run by the scheduler.
+
+  search server	answers queries according to the index (the gatherer
+		database is no longer needed). Contained in bin/sherlockd,
+		controlled by bin/scontrol which is usually run by the
+		scheduler. Talks with clients via TCP, the protocol is
+		described in doc/search.
+
+  front-end	is just an user-interface to the search server: e.g.,
+		it can be a CGI script passing user queries to the
+		search server and formatting the results in HTML.
+
+This file describes the most common use of Sherlock -- indexing of web
+pages. The system itself is much more powerful and due to its modular
+structure, it can be easily used or adapted for a large number of other
+uses, but it's outside the scope of this brief introduction. If you
+suspect any indexing and searching task could be accomplished by using
+Sherlock (and it's quite probable), just ask the authors for more hints.
+
+3. Configuring
+~~~~~~~~~~~~~~
+Before you run Sherlock, you need to configure it.
+
+All parts of Sherlock share a single configuration file cf/sherlock,
+which in turn includes other files with configuration of specific
+subsystems. Please read these files file and follow the comments,
+but here are a couple of things you really should set to avoid later surprises.
+These can be found in cf/local.
+
+  o  HTTP.From (i.e., item From in section HTTP) -- set it to your
+     address, so the webmasters of the servers you index will know
+     who's spidering them. Even better, set HTTP.UserAgentComment
+     as well.
+  o  Shepherd configuration:
+     - ShepherD.BucketFileSize -- the desired size of your database
+     - ShepherD.RefreshCycle -- how often to refresh each document
+     - ShepherD.StdServerDelay and MinServerDelay -- minimum time
+       between two accesses to the same server
+     - ShepherD.ReapCycle -- length of a time slot reserved for batch
+       gathering.  Decrease it significantly to tens of seconds when you
+       create database from scratch, otherwise gathering will proceed
+       very slowly.
+     - ShepherD.AvgBucketSize and AvgURLSize -- expected size of
+       downloaded documents
+  o  Search.Allow -- if you want to run the front-end on a different
+     machine, you need to enable external connections here.
+  o  The performance of Sherlock is influenced by the following items:
+     - ShepChildren.MaxChildren
+     - ShepherD.EstRawPerformance -- number of downloads per second
+     - Sorter.SortBuffer, *.*BufSize, *.*CacheSize -- memory
+       consumption; larger values speed up Sherlock significantly
+     - *.*Threads, Indexer.Slices -- harness multi-core CPU's
+
+Also, you need to specify which documents should be gathered and indexed
+and which should be left out (usually, you index your own domain and
+ignore everything outside). This is described by a so called filter
+(cf/filter) which is a program in a simple programming language
+(see doc/filter for a complete definition) describing the exact
+rules, shared by all components of Sherlock. In most cases, it should
+be sufficient to take the default filter and edit the domain names there.
+
+When running any Sherlock commands, you can select a different
+configuration file or override any settings by -C and -S switches,
+see doc/hints for details.
+
+If you want to log as much information as possible, use -Ccf/trace
+which enables all available logging and tracing options.
+
+4. Initializing
+~~~~~~~~~~~~~~~
+During normal operation, everything is controlled by the scheduler,
+the gatherer automatically follows links to discover new documents,
+takes care of refreshing the already known ones, the indexer is run
+periodically to create indices, and the search server is run to answer
+user queries.  However, to start the whole circle from scratch, you need
+to make a couple of special steps:
+
+  o  Make sure the "db" directory contains only empty "state" subdirectory.
+     (eg. you have "db" and "db/state" directories, no files)
+  o  Run "bin/shep-init" to initialize the database.
+  o  Run "bin/shep --current --insert --urls <some URL's>" to feed it with
+     the initial set of URL's (usually, your home page is enough, the
+     shepherd will find everything else by following links).
+
+     Make sure the URL's are allowed in the filters.
+  o  Run "bin/gcontrol start" and wait a few cycles.  In the meantime, you can
+     watch its log file in log/shepherd-*, to see if everything runs well.
+     It will complain about not having anything to do at the beginning,
+     but it should start working after few cycles. You can run "bin/shep -L"
+     to see what is gathered.
+  o  Run "bin/indexer -u" while shepherd is running. This will create an
+     initial index and feed the weights back to shepherd so it knows what
+     to gather.
+  o  Stop shepherd ("bin/gcontrol stop").
+  o  Start the whole machinery by "bin/sched-control start". It will start
+     the scheduler that takes care of running everything.
+
+After something is gathered and the index generated, you can try to send
+a query either by telnetting to the search server's port (by default it's
+8192) or by using bin/query.
+
+If you want to start Sherlock on system boot and your system uses
+System V like init scripts (and assuming you've compiled everything
+as user `sherlock' in his home directory), just use sched-control as the
+init script; otherwise, use the following shell fragment with the
+appropriate user name and path:
+
+	export SH_HOME=~sherlock/run
+	exec su sherlock $SH_HOME/bin/sched-control $@
+
+You can also use `sched-control start <target>' if you want to perform some
+special action upon scheduler startup (e.g., if you want to force
+immediate regeneration of the index), see cf/timetable for a list
+of such actions.
+
+The control scripts also have built-in log rotation facilities -- just
+run `bin/scontrol cron' daily and set the SKeeper.RotateLogs switch.
+
+5. Useful utilities
+~~~~~~~~~~~~~~~~~~~
+There are some more programs you can make use of when administering
+Sherlock:
+
+gcontrol	master control script of the shepherd, usually started by
+		the scheduler.
+sched-control	master control script of the scheduler.
+scontrol	master control script of the search server,
+		usually run automatically by the scheduler
+indexer		master control script of the indexer -- run to
+		generate a new index; called automatically by the scheduler
+shep		control the gatherer (view and modify the list of
+		known URL's and the queue, insert URL's manually
+		and a lot of other tasks). The shepherd must be stopped during
+		write operations. Or, you can borrow a state, if you need to
+		keep it running.
+
+		Examples:
+		Show list of know urls
+		  ./bin/shep -L
+		Add new url
+		  ./bin/gcontrol stop
+		  ./bin/shep --current --insert --urls http://new.url
+		  ./bin/gcontrol start
+		 or
+		  ./bin/shep --borrow-state
+		  ./bin/shep --current --insert --urls http://new.url
+		  ./bin/shep --return-state
+
+shep-recover	recover database after a crash.
+gtest		look how does the shepherd process a given URL,
+		usually run with -Ccf/trace
+gbatch		gathers a list of URL's given on its standard input
+		without following any links. Ideal for indexing
+		document collections present locally.
+query		send test queries to the search server.
+check-sherlockd Netsaint plug-in for checking search servers.
+analyse-log,	process gatherer logs and draw graphs with various
+plot-log	statistics from them -- currently under development,
+		not recommended for general use
+
+These utilities are useful when debugging Sherlock or trying
+to understand how does it work:
+
+buckettool	manipulate contents of bucket files (the large files
+		like db/objects serving as bags with lots of small
+		objects)
+cs2cs		simple convertor of character sets
+db-tool		manipulate contents of database files (db/*.db)
+idxdump		dump various parts of the index in human readable form
+objdump		dump object files and convert data streams to a human
+		readable form
+
+6. More documentation
+~~~~~~~~~~~~~~~~~~~~~
+doc/changes		changes between versions
+doc/config		syntax of the configuration files
+doc/configure		how to use the ./configure script
+doc/file-formats	formats of all data files
+doc/filter		the filter language
+doc/hints		hints and frequenty asked questions
+doc/indexer		roadmap of indexer modules
+doc/lang-tables		how to build your own language recognition tables
+doc/objects		format of documents and their attributes
+doc/search		communication with the search server
+doc/gatherd		if you want to use old gatherd instead of shepherd.
+
+7. Example front-end
+~~~~~~~~~~~~~~~~~~~~
+There is a simple CGI front-end in the free/front-end directory. It's written
+in Perl using a couple of Perl modules (see lib/perl) for common CGI tasks
+and communication with the search server. It should serve as an example
+of how to use the modules or even as a skeleton of your own front-end.
+Make sure you have copied Perl libraries from sherlock/perl/ into
+lib/perl5/Sherlock/, relative from the place of query.cgi.
+
+In case your documents contain non-ASCII characters, the front-end shows
+them in UTF-8 encoding. If you want anything else, just use an appropriate
+web server module (mod_charset, mod_czech etc.) to convert the output.
+
+The front-end expects queries of this type:
+
+	aleph beth gimel	any of these words
+	"aleph beth"		a phrase
+	aleph +beth -gimel	`beth' is mandatory, `gimel' forbidden
+	? "aleph" or "beth"	use `?' to enter any full query in the
+				native language of sherlockd (cf. doc/search)

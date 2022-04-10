@@ -1,0 +1,105 @@
+Sherlock Holmes 4.0 -- A Universal Search Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+(c) 1997--2009 Martin Mares <mj@ucw.cz>
+(c) 2000--2009 Robert Spalek <robert@ucw.cz>
+
+This package contains a freely distributable version of the Sherlock Holmes
+search engine -- a system for gathering and indexing of textual data (text
+files, web pages, ...), both locally and over the network.
+
+Features:
+
+  o  Gathers files via HTTP or from local files.
+
+  o  Parses text files, HTML, PDF, and several other formats using external
+     parsers (such as MS Word and PostScript).
+
+  o  The whole system is modular, so adding your own data sources
+     or parsers is just matter of plugging in right module (well,
+     usually also writing it :) ).
+
+  o  Works well in mixed charset environment.
+
+  o  Considers multiple occurences of the same file (even with minor
+     changes) a single document with multiple URL's.
+
+  o  Everything is highly configurable. You can write filtering
+     rules in a special language which allows to tweak configuration
+     variables depending on the document being processed.
+
+  o  Searching of words, phrases and boolean expressions. Searching in
+     filenames and link texts.
+
+  o  Proximity search and proximity weighting of regular searches.
+
+  o  Recognition of languages, easy integration of stemmers and synonymic
+     dictionaries.
+
+  o  Spelling checker based on word frequencies observed in the indexed
+     data, hinting the user that his query might be misspelled.
+
+  o  Search results include context in each document.
+
+  o  Scales well to tens of millions of documents on normal PC hardware.
+
+  o  User interface (the front-end) is completely separated from the
+     rest of the system, making it easy to modify and also to embed
+     the search engine in existing applications.
+
+  o  Downloaded files and indices are compressed to save space.
+
+The first version was developed back in 1997 and called Sherlock, but later
+Apple started distributing another program of the same name as part of their
+OS X, so we decided to rename the whole package to Sherlock Holmes to avoid
+at least part of the confusion. The old name still persists at many places,
+though.
+
+License:
+
+The program is licensed under the GNU General Public License (GPL) version 2.
+Some libraries and support modules are distributed under the GNU Lesser
+General Public License (LGPL) and some example programs are public
+domain. In all such cases, it's clearly stated in comments at the start
+of the module.
+
+There also exists a commercial version of the search engine which
+contains many additional features and you can get paid support for it.
+If you are interested in it, please contact us.  The feature list
+follows:
+
+ o  site compression (the search server only shows up to 2 pages from
+    one domain),
+ o  automatic page ranking (based on the links between the pages),
+ o  brand new distributed gatherer (it chooses which pages to gather
+    according to their ranks, it is much faster and more scalable, and
+    it can refresh pages much more often),
+ o  connection with a catalog (human-administrated titles and keywords are
+    taken into account during the search, and displayed with the results),
+ o  internal MS Word and MS Excel parsers,
+ o  indexing of images,
+ o  search server multiplexer to load the balance,
+ o  splitting the index into independent areas (one search engine for a
+    number of domains).
+
+Also, donations for development of features you'd like to use are welcome.
+So much for advertisements :)
+
+If you want to incorporate Sherlock in your applications or to use it
+for whatever non-standard purposes you'd like, please contact the
+authors -- licenses for such cases are available as well and in case
+of academic research and non-profit projects, they are usually provided
+free of charge.
+
+For instructions on installation, see doc/install. For more information,
+consult the other files in the doc directory.
+
+You can find information about new versions at the project's
+homepage at http://www.ucw.cz/holmes/. You can see Holmes in action
+at http://www.morfeo.cz/ where it searches in the whole domain .cz.
+
+All reports of bugs or inconveniences and also ideas for new features
+(or patches implementing them :-) ) are welcome at holmes-bugs@ucw.cz.
+
+		Happy gathering, indexing and searching!
+
+						The Authors

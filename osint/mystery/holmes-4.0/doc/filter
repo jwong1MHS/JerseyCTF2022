@@ -1,0 +1,344 @@
+Sherlock Filter Programming Language
+************************************
+
+General description
+-------------------
+
+Filter is a program that is run many times during the processing of a
+document (after discovering a new URL, before download, after download,
+during expiration, during compilation of the index, ...).  The main job
+of the filter is to decide whether the URL will be accepted or
+rejected.  Rejected URL's are deleted and Sherlock forgets them.  As a
+side effect, the filter may set some document attributes, such as weight,
+site name, etc.
+
+The philosophy of filters is to maintain only one program for all
+phases.  Accepting/rejecting the document works in all phases, but
+setting the attributes differs from one phase to another, because not
+all attributes are available in every phase.  In that case, the
+unavailable attributes are defined to be undefined :-) and so every
+expression on them is undefined too.  Assignment to undefined attributes
+is silently ignored.  Sherlock filters use 3-state logic (true, false,
+undefined) and all statements (if, switch) respect this.
+
+Attributes
+----------
+
+There are 4 types of attributes:
+
+- predefined built-in attributes:
+
+	;document location
+	string	url		;complete URL of the document
+	string	protocol	;parsed URL components
+	string	host
+	int	port
+	string	path
+	string	username	;these are modifiable
+	string	password
+
+	;gatherer attributes
+	string	server_type	;server type reported by HTTP
+	string	content_type	;content type of this document
+	string	content_encoding;content encoding of this document
+	int	ignore_links	;don't follow links from this document
+	int	ignore_text	;don't store (nor index) text of this document
+	int	error_code	;error code used when the document is rejected (default: 2401 or 2307)
+	string	language	;document language (two-letter name or "?" if unknown), modifications ignored
+	int	user_mark	;user-defined mark, which can be passed from shepherd to reapd
+
+	;gatherd attributes
+	int	section_soft_max;maximum of queued documents for this (host,section)
+	int	section_hard_max;maximum of recorded URL's for this (host,section)
+	int	section		;section tag
+	int	queue_bonus	;bonus added to URL priority in the queue
+	int	queue_key	;queueing key (usually server IP address)
+
+	;shepherd attributes
+	int	soft_limit	;maximum number of gathered documents for this site
+	int	hard_limit	;maximum number of remembered URL's for this site
+	int 	fresh_limit	;maximum number of active documents with only approx. weight
+	int	min_delay	;local setting of MinServerDelay
+	int	max_conn	;maximum number of simultaneous downloads for this site (1..255)
+	int	section		;section tag
+	int	queue_bonus	;bonus added to URL priority in the queue
+	int	queue_key	;server part of queueing key (usually server IP address)
+	int	monitor		;monitor this site and log all changes to state log
+	int	select_bonus	;prefer this site when selecting URL's (currently 0/1)
+	int	refresh_schema	;select a schema to plan frequent refreshes (0=the default one)
+	int	refresh_boost	;a divisor to stable times (see below) when planning frequent refreshes
+	int	stable_time	;time between last significant change and last check in stable_time_units (0=detect automatically)
+	int	filter_robots	;a nonzero value allows rejecting of robots.txt (always accepted by default)
+
+	;indexer miscellanea
+	int	queue_key	;server part of queueing key (usually server IP address)
+	string	site		;overridden site name (the domain part of the URL)
+	int	site_level	;where to cut site name from URL: 0=all domain, 2=2nd level domain, -1=1st directory
+	int	bonus		;weight bonus applied by the scanner to source objects
+	int	card_bonus	;weight bonus applied by the chewer to final cards
+	string	language	;document language (two-letter name or "?" if unknown)
+	string	title		;document title (read-only)
+	int	image_size	;geometrical average of image dimensions (=sqrt(width * height))
+	int	image_aspect_ratio;=1024 * MAX(width / height, height / width)
+	int	image_colors	;number of colors or zero for grayscale
+	int	audio_length	;audio length (in secs)
+	int	audio_bitrate	;audio bitrate (in bps)
+	int	audio_srate	;sample rate (in Hz)
+	int	audio_channels	;number of audio channels (1=mono, 2=stereo, ...)
+	int	noindex		;compute weights but do not index content (1) or even reftexts (2)
+
+	;area stuff (if CONFIG_AREAS), used by both shepherd and indexer
+	int	area		;area ID (0=default area)
+
+	;link transformation, used by both shepherd and indexer (do not forget to turn Scanner.FilterLinks on)
+	int	want_xform	;allow transformation of links from this URL, otherwise url_xform will be ignored (default=0=off)
+	string	url_xform	;modifable link URL (default=original URL)
+	string	src_url		;link's source URL (read only)
+
+- user defined attributes: their life-cycle is one run of the filter and
+  may be used as a storage space for common subexpressions.  They can
+  be declared anywhere in the filter and can be of type int, string and
+  regexp.
+
+- object attributes: raw attributes of object (described in
+  doc/objects).  Some of them are multi-valued, normal assignment deletes
+  all previous values, for adding a new record call the add command, for
+  deleting of all values call the delete command.  The filters explicitly
+  know only the following attributes, all others are by default of string
+  type:
+
+	int	s
+
+  All object attributes are referred to by `attr["name"]'.
+
+- configuration items: all integer and string attributes described in
+  cf/sherlock may be used.  It is possible to overwrite their values
+  too, but the change is undone after processing of the particular document
+  is finished.  Unknown configuration items are ignored, because many
+  utilities do NOT know the whole structure of the configuration file (this
+  doesn't hold for built-in and object attributes, all of them must be
+  known). They are referred to by `conf[section.item]'.
+
+Attribute types
+---------------
+
+There are two basic types:
+
+	int	;32-bit signed integer
+	string	;8-bit character string of arbitrary length
+
+The user-defined variables may be of one additional type too:
+
+	regexp	;precompiled regular expression pattern
+
+Functions
+---------
+
+The following predefined functions may be called inside the expressions:
+
+	int toint(string str)
+		;converts string to its integer value
+	string replace(string source, regexp pattern, string by_what, string default)
+		;performs regular expression substitution: if `source' matches `pattern',
+		;replace it by `by_what' with \<digit> expansion; if it doesn't match,
+		;return `default' instead
+	int has_repeated_component(string url)
+		;returns non-zero number if the URL is strange (defined
+		by occurrence of many repeated components, read
+		cf/sherlock section [URL])
+	string cut_at(string str, string chr)
+		;finds the last occurence of chr in str (chr must be a single character);
+		;if chr is not found, function result is defined to be undefined (as defined above ;-)), 
+		;otherwise it returns the rest of str starting at the found character (including)
+	string remove_url_param(string url, string name)
+		;removes all occurences of the parameter `name' from a given URL
+		;if `name' contains wildcards, then every wildcard matching parameter is removed
+	string set_url_param(string url, string name, string val)
+		;for all occurrences of the parameter `name' in a given url replaces its value with `val'
+		;if `name' contains wildcards, then value for every wildcard matching parameter is set
+
+Customizations can define their own filter functions.
+
+Lexical elements
+----------------
+
+keywords:
+	accept reject error warning log debug
+	if else undef elif switch case
+	true false undefined defined
+	attr add delete conf int string regexp
+	include
+number:
+	0x897ab, 03457, 4356, -3458
+identifier:
+	[A-Za-z_][A-Za-z_0-9]*
+numerical and string operators:
+	< > <= >= == !=
+	<< >> <== >== === !==	(ignore case for strings, unsigned comparison for integers)
+interval testing operators:
+	=# =##
+string operators:
+	=~ !~ =* !*		(match regexp pattern or wildcards)
+	=~~ !~~ =** !**		(ignore case too)
+	~ ~~			(compile regexp pattern)
+relational operators:
+	&& ||
+other tokens:
+	. , : ; ( ) { } [ ] + - * / % ^ & | ! =
+string:
+	'a string without newline'
+	"a string without newline; support for C-like escape sequences"
+comments:
+	#comment until newline
+	/* possibly multi-line comment */
+
+Syntax
+------
+
+program =	*(command)
+
+declaration =	type user-variable *( "," identifier ) ";"
+type =		"int" | "string" | "regexp"
+user-variable =	identifier
+
+block =		"{" *(command) "}"
+command =	block
+		| declaration
+			; lasts until the end of the current block
+		| "include" string
+			; includes the contents of the given file
+			; the limit is 16 nested files
+		| log-cmd expression ";"
+			;log a message
+		| accept-cmd [ expression ] ";"
+			;accept/reject the document, optionally log a
+			message
+		| [ "add" ] lvalue "=" expression ";"
+		| "delete" lvalue ";"
+			;assignment to an attribute, add and delete are
+			described above
+		| "if" condition block *( "elif" condition block )
+			[ "else" block ] [ "undef" block ]
+			;3-state logic if statement
+		| "switch" expression "{" *(case) "}"
+			[ "else" block ] [ "undef" block ]
+			;3-state logic switch statement, it uses
+			so-called partial conditions.  It means that the
+			expression from the head of the switch statement
+			is compared by given operator with another
+			expression.
+log-cmd =	"error" | "warning" | "log" | "debug"
+accept-cmd =	"accept" | "reject"
+
+case =		"case" partial-cond *( "," partial-cond ) ":" *(command)
+condition =	const-cond
+			;simplest constant conditions
+		| "(" condition ")"
+		| expression partial-cond
+			;evaluation of a basic condition by comparing an
+			expression with a partial condition
+		| "!" condition
+			;negation of the condition
+		| "defined" "(" ( condition | expression ) ")"
+			;testing whether the operand is defined
+		| condition oper-cond condition
+			;applying a logical operator
+const-cond =	"true" | "false" | "undefined"
+oper-cond =	"&&" | "||" | "==" | "!="
+			;and, or, equal and not equal
+partial-cond =	( oper-compare-general | oper-match-string | oper-match-icase ) expression
+		| oper-match-interval expression ".." expression
+oper-compare-general =	"<" | ">" | "<=" | ">=" | "==" | "!="
+			;basic comparison operators usable both for
+			integers and strings
+oper-match-string =	"=~" | "!~" | "=*" | "!*"
+			;case sensitive string match operators (~ is for
+			regular expressions, * is for wildcard pattern
+			matching; = is for testing the positive result,
+			! is for negating the result)
+oper-match-icase =	"<<" | ">>" | "<==" | ">==" | "===" | "!==" |
+			"=~~" | "!~~" | "=**" | "!**"
+			;case insensitive/unsigned variants of all comparison
+			operators (constructed by doubling the last
+			letter of corresponding case sensitive
+			operator)
+oper-match-interval =	"=#" | "=##"
+			;normal and case insensitive/unsigned variant
+
+expression =	number | string
+			;simplest constants
+		| ( "~" | "~~" ) string
+			;precompiling a regular expression (mostly for
+			storing into user-defined attribute).  Case
+			insensitive pattern is created by ~~ operator.
+			These operators are not needed when applying a
+			match operator to a constant pattern, then the ~
+			unary operator should be omitted and only the
+			string with the pattern should be used.
+		| lvalue
+			;getting an attribute value
+		| "(" expression ")"
+		| oper-unary expression
+		| expression oper-binary-expression
+			;applying unary and binary operators
+		| function-name "(" expression *3( "," expression ) ")"
+			;evaluating a predefined function, types are
+			strictly checked
+oper-unary =	"+" | "-"
+			;basic arithmetic unary operators
+oper-binary =	"|"
+		| "&"
+		| "+" | "-"
+		| "*" | "/" | "%"
+		| "^"
+			;basic arithmetic binary operators ordered by
+			the priority (defined in an usual way), the
+			operand types are checked to be integer
+		| "."
+			;string concatenation operator, its operands may
+			be of any type, the result is always a string
+function-name =	"toint"
+		| "replace"
+		| "has_repeated_component"
+		| "cut_after"
+			;described above
+lvalue =	predefined-variable
+		| user-variable
+		| "attr" "[" ( identifier | string ) "]"
+		| "conf" "[" identifier "." identifier "]"
+			;described above
+predefined-variable =	"url" | "protocol" | "host" | "port" | "path" | ...
+			;any of the predefined variables described above
+
+Optimization notes
+------------------
+
+Switch commands containing several == and === tests are optimized by
+constructing hash-tables for faster lookups.  Furthermore, =* and =**
+tests are also optimized by constructing tries for prefixes and suffixes of the
+wildcard-patterns and KMP automata for substrings, and =# and =##
+interval tests are optimized by constructing red-black binary search trees.
+This capability allows using switch commands with tens of thousands equality
+and wildcard tests without hiting the performace too much.
+Be cautious with the following pitfall: the hash-table, KMP and trie lookups
+are performed BEFORE other SWITCH cases. Other cases are tested in the
+same order as written in the program.
+
+The filter optimizer also deletes assignments to undefined variables and
+tests on undefined values.  Since the deletion is recursive, a bulk of
+the program can be optimized-out in special cases.  There are 2
+pitfalls:
+
+	- When the body of some case of a SWITCH command is empty, the
+	  whole case is deleted.  Hence it can happen, that some of the
+	  following cases (normally unreachable) will be chosen.
+
+	- If the function call from an undefined expression contains
+	  side-effects, they will NOT be performed, since the whole
+	  expression is optimized-out.
+
+Examples
+--------
+
+Look at filter/test-filter (dummy program just demonstrating the power
+of a programming language) or cf/filter (meaningful real filter program).

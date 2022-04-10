@@ -1,0 +1,64 @@
+# This is a master configuration file of the whole Sherlock system.
+# All programs read this file (unless told otherwise by the -C switch).
+# See doc/config for the description of the configuration language.
+
+#ifdef NOTDEF
+#
+# This is a source form of the configuration which is run through a preprocessor
+# which understand the usual '#ifdef', '#ifndef' '#else' and '#endif' directives,
+# like a C preprocessor, which test compile-time settings defined in config.mk.
+#
+#endif
+
+# There is a lot of settings, so they have been split into multiple
+# config files which are included from here:
+
+# Library modules and utilities
+Include cf/libucw
+Include cf/libsherlock
+
+# Language processing
+Include cf/lang
+
+#ifdef CONFIG_GATHERER
+# The gatherer
+Include cf/gatherer
+#endif
+
+#ifdef CONFIG_GATHERD
+# The gathering daemon
+Include cf/gatherd
+#endif
+
+#ifdef CONFIG_ANALYSER
+# Content analysers
+Include cf/analyser
+#endif
+
+#ifdef CONFIG_SHEPHERD
+# The Shepherd gathering daemon
+Include cf/shepherd
+#endif
+
+#ifdef CONFIG_INDEXER
+# The indexer
+Include cf/indexer
+#endif
+
+#ifdef CONFIG_SEARCH
+# The search server
+Include cf/sherlockd
+#endif
+
+#ifdef CONFIG_IMAGES
+# The image library
+Include cf/images
+#endif
+
+#ifdef CONFIG_ADMIN
+# The administration tools
+Include cf/admin
+#endif
+
+# Local settings
+Include cf/local

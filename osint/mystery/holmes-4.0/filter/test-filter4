@@ -1,0 +1,91 @@
+if (-1 < 1 && -1 >> 1)
+{
+  log "signed and unsigned comparison is OK";
+}
+int xx;
+xx = -6;
+switch xx {
+  case <= -100:
+    accept "<= -100";
+  case =# -9..-8:
+    reject "-9..-8";
+  case =# -7..-2*3:
+    accept "-7..-6";
+  case =# -5..-4:
+    reject "-5..-4";
+  case =# -3..-2:
+    accept "-3..-2";
+  case =# -1..1:
+    reject "-1..1";
+  case =# 2..33:
+    accept "2..3";
+  case =# 2134..989888:
+    reject "asdas";
+  case >= 999999999:
+    accept;
+  case >= 999999998:
+    accept;
+  case =# 15..50:
+    reject "!!!";
+  case =# 120..110:
+    accept;
+}
+xx = 24+1;
+switch xx {
+  case <== 5:
+    accept;
+  case =## 6..8:
+    accept;
+  case =## 10..20:
+    accept;
+  case =## 21..100*2/2:
+    accept "25";
+  case =## 1000..1001:
+    accept;
+  case === 9:
+    accept;
+  case =## 9999..99999:
+    reject;
+  case >== 12345678:
+    accept;
+  case =## 2..30:
+    reject;
+}
+string xy;
+xy = "pocitac";
+switch xy {
+  case <== "ahoj":
+    accept;
+  case =## "byt".."Cejlon":
+    reject;
+  case =## "babicka".."BEJVAK":
+    accept;
+  case =## "bbb".."dum":
+    reject;
+  case =## "Kadibudka".."pas":
+    accept;
+  case =## "pes".."SUL":
+    reject;
+  case =## "ruka".."zenit":
+    accept;
+  case >== "zz":
+    reject;
+}
+switch xy {
+  case <= "Ahoj":
+    accept;
+  case =# "Byt".."Cejlon":
+    reject;
+  case =# "BEJVAK".."Babicka":
+    accept;
+  case =# "Dum".."bbb":
+    reject;
+  case =# "Kadibudka".."Pas",
+       =# "ruka".."zenit":
+    accept 1+1;
+  case =# "pes".."sUL":
+    reject;
+  case >= "zz":
+    reject;
+}
+log 1+1;

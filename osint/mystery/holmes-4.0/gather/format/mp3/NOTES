@@ -1,0 +1,21 @@
+What tag types could be interesting:
+
+o  ID3v1
+o  ID3v2: http://www.id3.org/Developer_Information
+o  Lyrics3: http://www.id3.org/Lyrics3
+o  Lyrics3v2: http://www.id3.org/Lyrics3v2
+o  APE: http://wiki.hydrogenaudio.org/index.php?title=APE_Tags_Header
+
+Headers:
+
+o  Xing: http://www.codeproject.com/audio/MPEGAudioInfo.asp
+o  LAME: http://gabriel.mp3-tech.org/mp3infotag.html
+o  VBR: http://www.iis.fraunhofer.de/fhg/iis/EN/bf/amm/download/sw/index.jsp
+
+Test suites:
+
+o  http://www.getid3.org/demo/
+
+Other utilities:
+
+o  http://mp3gain.sourceforge.net/

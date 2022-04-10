@@ -1,0 +1,56 @@
+{
+int a, b, c;
+string xa, ya;
+
+a = (b + 0) * (c - (c + a^a) * (1 - 1) ) + a/1;
+b = 1+2*3^4;
+c = 2 + toint("13");
+a = 1*c + a + 0 + b + c^(3- 2) + a^0;
+if 3 < 3 { log "1"; } else { log "2"; } undef { log "3"; }
+if !! (defined(x) && defined(z)) { log "a"; }
+elif (defined(x) || defined(z)) && true { log "b"; }
+else { log "c"; }
+
+switch (1+1)
+{
+	case ==1:
+		log 1;
+	case ==2:
+		log 2;
+	case ==3:
+		log 3;
+}
+xa = "";
+switch xa . ("ahoj" . "3")
+{
+	case == "ahoj1":
+		log "ahoj1";
+	case == "ahoj2":
+		log "ahoj2";
+	case == "ahoj"."3":
+		log "ahoj3";
+	case == "ahoj4":
+		log "ahoj4";
+	case == "ahoj5":
+		log "ahoj5";
+	case == "ahoj6":
+		log "ahoj6";
+}
+switch "ahoj" . "2"
+{
+	case =* "a*1":
+		log "ahoj1";
+	case =* "a*2":
+		log "ahoj2";
+	case =* "a*3":
+		log "ahoj3";
+	case =* "a*4":
+		log "ahoj4";
+	case =* "a*5":
+		log "ahoj5";
+	case =* "a*6":
+		log "ahoj6";
+}
+
+log "End";
+}

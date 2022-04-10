@@ -1,0 +1,20 @@
+Sherlock Holmes -- A Universal Search Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Copyright (c) 1997--2007 Martin Mares <mj@ucw.cz>
+Copyright (c) 2000--2007 Robert Spalek <robert@ucw.cz>
+
+This package contains a freely distributable version of the Sherlock
+Holmes search engine.  The program is licensed under the GNU General
+Public License (GPL).  Some libraries and support modules are
+distributed under the GNU Lesser General Public License (LGPL) and some
+example programs are public domain. In all such cases, it's clearly
+stated in comments at the start of the module.
+
+There also exists a commercial version of the search engine which
+contains more features and you can also get paid support for it.
+
+If you want to incorporate Sherlock in your applications or to use it
+for whatever non-standard purposes you'd like, please contact the
+authors -- licenses for such cases are available as well and in case
+of academic research and non-profit projects, they are usually provided
+free of charge.
