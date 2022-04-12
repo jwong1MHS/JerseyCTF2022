@@ -21,7 +21,7 @@
 
 ### ***Description***
 - Roman generals really knew how to make salad!
-- <span style="color: palevioletred;">`atkw{plddp_jrcru_uivjjzex}`</span>
+- <span style="color: #e83e8c;">`atkw{plddp_jrcru_uivjjzex}`</span>
 
 
 ### ***Writeup***
@@ -34,7 +34,7 @@ Flag: `jctf{yummy_salad_dressing}`
 ### ***Description***
 
 - On the first day of the job, a new cryptography intern is insisting to upper management that he developed a new encryption algorithm for the company to use for sensitive emails and should get a raise. This seems too good to be true... are you able to prove the intern wrong by decrypting it?
-- Here's an example of an encrypted email message using the intern's algorithm: <span style="color: palevioletred;">`amN0Znt0UllfQUVTX0lOc1QzQGR9`</span>
+- Here's an example of an encrypted email message using the intern's algorithm: <span style="color: #e83e8c;">`amN0Znt0UllfQUVTX0lOc1QzQGR9`</span>
 
 <details>
     <summary>View Hint</summary>
@@ -119,11 +119,7 @@ Flag: `jctf{CryptoIsTheKeyToFun}`
 
 ### ***Writeup***
 
-Brute force using a python script.
-
-Caesar cipher to decode the key.
-
-Run `file` and change file type to .gif.
+Brute force using a python script. Caesar cipher to decode the key. Run `file` and change file type to .gif.
 
 Flag: `jctf{ew8WhHuhmv}`
 
@@ -166,7 +162,7 @@ Flag: `jctf{l00k5_1ik3_u_f0Und_m3_018a09d6}`
 - My friends said they were going on a trip but I think they ran into some trouble...
 - They sent me these two files before we lost contact (**src.c** and **going-over**)
 
-<span style="color: palevioletred;">nc 0.cloud.chals.io 10197</span>
+<span style="color: #e83e8c;">nc 0.cloud.chals.io 10197</span>
 
 <details>
     <summary>View Hint</summary>
@@ -184,8 +180,8 @@ Flag: `jctf{l00k5_1ik3_u_f0Und_m3_018a09d6}`
 # **osint**
 
 - [dns-joke (100)](#dns-joke)
-- [misdirection (250)](#misdirection)
-- [misdirection (250)](#misdirection)
+- [photo-op-spot (250)](#photo-op-spot)
+- [rarity (350)](#rarity)
 
 ## **dns-joke**
 
@@ -231,7 +227,7 @@ Flag: `jctf{solofadesbrief}`
 ### ***Description***
 
 - With three belonging to a respective company, there is only a two-digit number amount of this entity left in the world. There is one near this picture... how close can you get to it?
-- The flag format is the coordinates in decimal degrees notation, for example: <span style="color: palevioletred;">`jctf{-65.913734,-10.814140}`</span>
+- The flag format is the coordinates in decimal degrees notation, for example: <span style="color: #e83e8c;">`jctf{-65.913734,-10.814140}`</span>
 - Get the coordinates **at the gate**
 
 <details>
@@ -244,12 +240,101 @@ Flag: `jctf{solofadesbrief}`
     <a href="https://en.wikipedia.org/wiki/Hindenburg_disaster">https://en.wikipedia.org/wiki/Hindenburg_disaster</a>
 </details>
 
-[photo-op-shot.JPG](https://www.jerseyctf.site/files/6ff5e1564d4137f5d48463aedb8e5632/photo-op-spot.JPG?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6NDB9.YlR90A.K0YFsNi4Ihmwgz69ZbnR1DWQs-E)
+[picture.png](https://www.jerseyctf.site/files/4133210b82b0c48fc842bee2a7ab7fee/picture.png?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6NDF9.YlSBiA.AIUYELs0qMedI9HnhxsrEjieKoM)
 
 ### ***Writeup***
 
-Radio tower is called “Transforest” after doing some Google image searching.
+The entity is a Blimp, more specifically a Goodyear blimp. The gate must near the Wingfoot Lake base in Akron, OH given the 330 area code in the bottom right.
 
-We want to specify the location with just three words, which we can use https://what3words.com and give the address “130 Minor Ave N”.
+The address is 1012 Goodyear Park.
 
-Flag: `jctf{solofadesbrief}`
+Flag: `jctf{41.0198897,-81.3621548}`
+
+# **forensics**
+
+- [speedy-at-midi (150)](#speedy-at-midi)
+- [data-backup (250)](#data-backup)
+- [recent-memory (250)](#recent-memory)
+- [scavenger-hunt (350)](#scavenger-hunt)
+- [corrupted-file (400)](#corrupted-file)
+
+## **speedy-at-midi**
+
+### ***Description***
+
+- Your partner-in-crime gets a hold of a MIDI file, <span style="color: #e83e8c;">`riff.mid`</span>, which intelligence officials claim to contain confidential information. He has tried opening it in VLC Media Player, but it sounds just like the piano riff in <span style="color: #e83e8c;">`riff.mp3`</span>. Can you find the right tool to extract the hidden data?
+
+<details>
+    <summary>View Hint</summary>
+    You wouldn't have the audacity to try using a MIDI editor, would you?
+</details>
+
+[riff.mid](https://www.jerseyctf.site/files/531056bf3e98adcbda54f68023e70622/riff.mid?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MTh9.YlSYQw.eFW82LKkVc_JmmuGGQn26vtAB-g)
+
+[riff.mp3](https://www.jerseyctf.site/files/965ce2c09022315db0136ea155068369/riff.mp3?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MTl9.YlSYQw.BxS2VCX1G1Z66IoAEuBZs1Z1RCE)
+
+### ***Writeup***
+
+![img](https://lh4.googleusercontent.com/wLAEp2VN2C_XtRQIwjy5iuK5qnlExrZAy22gKd7oxotvxTEsIkOU3G43EeaPa6iVD8PG6z_iw1vaZfbiWvSgP1LZBmcc2QyuFboAS2haAqI4DZ389RqCsVEbbzBnc2SjfnWYHtms)
+
+Flag: `jctf{kicking_it_since_1983}`
+
+## **data-backup**
+
+### ***Description***
+
+- The backup of our data was somehow corrupted. Recover the data and be rewarded with a flag.
+
+<details>
+    <summary>View Hint</summary>
+    Try a tool a surgeon might use.
+</details>
+
+[data-backup](https://www.jerseyctf.site/files/6953c4156b0de04c42e0a32c7e56b2f1/data-backup?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MzB9.YlSZ6w.oQ-_d4EhvMDDvB0DyZLDa2PJYGA)
+
+### ***Writeup***
+
+Run `bulk_extractor -f jctf -o output <filename>` and open the file that it outputted.
+
+Flag: `jctf{fun_w17h_m461c_by735}`
+
+## **recent-memory**
+
+### ***Description***
+
+- Use the memory image in the Google drive link below. An attacker left behind some evidence in the network connections. Follow the attacker's tracks to find the flag.
+- https://drive.google.com/drive/folders/1ubSx3pwHOSZ9oCShHBPToVdHjTev7hXL
+- Backup link if the above link is not working: https://drive.google.com/drive/folders/192ELa6W5OZyeWi3DlRd-_TndzN2p_Xz8?usp=sharing
+
+<details>
+    <summary>View Hint</summary>
+    Try connecting to the attacker's system.
+</details>
+
+### ***Writeup***
+
+`strings recent-memory.mem | grep -i jctf`
+
+Flag: `jctf{f0ll0w_7h3_7r41l}`
+
+## **Scavenger-hunt**
+
+### ***Description***
+
+- My friend told me he hid a flag for me on this server! Server: 0.cloud.chals.io SSH port: 24052
+- **Username**: *jersey*
+- **Password**: *securepassword*
+
+<details>
+    <summary>View Hint</summary>
+    <ul>
+        <li>If only there were a way to see all folders... even hidden ones</li>
+        <li>I wonder where passwords are typically stored on ssh servers</li>
+    </ul>
+</details>
+
+### ***Writeup***
+
+Hint implies to look for the password files. Here a suspicious package file was located. Go to this package’s installation using `dpkg -L <packagename>` and access its manual page to find the key.
+
+Flag: `jctf{f0ll0w_7h3_7r41l}`
