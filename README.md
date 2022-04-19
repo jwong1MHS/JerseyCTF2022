@@ -1,10 +1,8 @@
-## **Jersey CTF II**
+# **Jersey CTF II**
 
 Jeopardy-style CTF hosted by NJIT ACM at https://www.jerseyctf.site/challenges
 
 Official writeup and challenges can be found on their GitHub: https://www.jerseyctf.site/challenges
-
-
 
 ## **Table of Contents**
 
