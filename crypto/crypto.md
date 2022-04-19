@@ -80,7 +80,7 @@ Flag: `jctf{CryptoIsTheKeyToFun}`
 
 ### ***Writeup***
 
-Reverse the AES encryption.
+Reverse the AES encryption. Might need to install the Cryptodome package by `pip install pycryptodomex`.
 
 ```python
 from base64 import b64decode
