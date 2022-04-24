@@ -1,4 +1,4 @@
-# **web**
+# web
 
 - [x] [apache-logs (100)](#apache-logs)
 - [x] [seigwards-secrets (100)](#seigwards-secrets)
@@ -6,9 +6,9 @@
 - [x] [flag-vault (300)](#flag-vault)
 - [x] [cookie-factory (400)](#cookie-factory)
 
-## **apache-logs**
+## apache-logs
 
-### ***Description***
+### *Description*
 
 - An apache log file that contains recent traffic was pulled from a web server. There is suspicion that an external host was able to access a sensitive file accidentally placed in one of the company website's directories. Someone's getting fired...
 - Identify the source IP address that was able to access the file by using the flag format: jctf{IP address}
@@ -17,20 +17,18 @@
     <summary>View Hint</summary>
 	Which directory types should sensitive files not be placed in?
 </details>
-
-
 [webtraffic.log](https://www.jerseyctf.site/files/3a0428612620ef7b190032655f097b00/webtraffic.log?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6OH0.YlYjVw.k0472hBVgZ8pNS9aLHisdMszles)
 
 
-### ***Writeup***
+### *Writeup*
 
 <kbd>CTRL+F</kbd> for 200 (successful HTTP GETs), the one indicating bank records represents confidential data and is what we are searching for.
 
 Flag: `jctf{76.190.52.148}`
 
-## **seigwards-secrets**
+## seigwards-secrets
 
-### ***Description***
+### *Description*
 
 - Seigward has been storing his secrets on his website [https://jerseyctf.co](https://jerseyctf.co/) for decades. Hasn't failed him yet.
 
@@ -39,17 +37,15 @@ Flag: `jctf{76.190.52.148}`
 	Where can you find a website's code?
 </details>
 
-
-
-### ***Writeup***
+### *Writeup*
 
 Notice that the [login.js](https://jerseyctf.co/login.js) file checks if the password when converted from ascii to base64 (`btoa`) is equal to `amN0ZnsxTV9zMF8xTV81b19EeW40TWl0M18wOTI0Nzh9`. Use a base64 decoder.
 
 Flag: `jctf{1M_s0_1M_5o_Dyn4Mit3_092478}`
 
-## **heres-my-password**
+## heres-my-password
 
-### ***Description***
+### *Description*
 
 - Here's the deal - we have a list of 500 users (males, females, and pets) and one password. Log-in with the proper credentials for the flag.
 - The password is **lightswitchon_and_offLOL26** and the website is [www.jerseyctf.online](http://www.jerseyctf.online/).
@@ -58,20 +54,18 @@ Flag: `jctf{1M_s0_1M_5o_Dyn4Mit3_092478}`
     <summary>View Hint</summary>
 	This is not intended to require manual brute force. What are some other types of brute force methods?
 </details>
-
-
 [users.txt](https://www.jerseyctf.site/files/b75ea9a239df8ec1408edc31d05932b3/users.txt?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6OX0.YlYlAg.llQS13U44BZu_MnEALyBwcMWvUM)
 
 
-### ***Writeup***
+### *Writeup*
 
 The username changes every minute.
 
 Flag: `jctf{c0NGR@T2_y0U_p@22wORd_SPR@y3D!}`
 
-## **flag-vault**
+## flag-vault
 
-### ***Description***
+### *Description*
 
 - I'm very organized. I even keep all of my flags neatly organized in a database! But, these are my flags! You don't have access to them... or do you?
 - Do not brute force this challenge.
@@ -86,9 +80,7 @@ Flag: `jctf{c0NGR@T2_y0U_p@22wORd_SPR@y3D!}`
     </ul>
 </details>
 
-
-
-### ***Writeup***
+### *Writeup*
 
 Login initially with the username `admin` and password `' OR 1=1--` Then give the SQL query `' OR FLAG LIKE 'jctf{%' --` which will search for all entries that match the jctf beginning characters.
 
@@ -96,9 +88,9 @@ Login initially with the username `admin` and password `' OR 1=1--` Then give th
 
 Flag: `jctf{ALMOST_LIKE_A_NEEDLE_IN_A_HAYSTACK}`
 
-## **cookie-factory**
+## cookie-factory
 
-### ***Description***
+### *Description*
 
 Granny's Cookie Factory
 
@@ -107,7 +99,7 @@ Granny's Cookie Factory
 <span style="color: #e83e8c;">Start here: https://jerseyctf-cookie-factory.chals.io/</span>
 
 
-### ***Writeup***
+### *Writeup*
 
 CVE-2018-1000531 vulnerability.
 

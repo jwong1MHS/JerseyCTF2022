@@ -1,4 +1,4 @@
-# **crypto**
+# crypto
 
 - [x] [salad (50)](#salad)
 - [x] [new-algorithm (75)](#new-algorithm)
@@ -6,23 +6,23 @@
 - [x] [hidden-in-plain-sight (350)](#hidden-in-plain-sight)
 - [x] [file-zip-cracker (450)](#file-zip-cracker)
 
-## **salad**
+## salad
 
-### ***Description***
+### *Description*
 
 - Roman generals really knew how to make salad!
 - <span style="color: #e83e8c;">`atkw{plddp_jrcru_uivjjzex}`</span>
 
 
-### ***Writeup***
+### *Writeup*
 
 Caesar cipher shift of 17.
 
 Flag: `jctf{yummy_salad_dressing}`
 
-## **new-algorithm**
+## new-algorithm
 
-### ***Description***
+### *Description*
 
 - On the first day of the job, a new cryptography intern is insisting to upper management that he developed a new encryption algorithm for the company to use for sensitive emails and should get a raise. This seems too good to be true... are you able to prove the intern wrong by decrypting it?
 - Here's an example of an encrypted email message using the intern's algorithm: <span style="color: #e83e8c;">`amN0Znt0UllfQUVTX0lOc1QzQGR9`</span>
@@ -31,17 +31,15 @@ Flag: `jctf{yummy_salad_dressing}`
     <summary>View Hint</summary>
     What are some differences between encryption, encoding, and hashing?
 </details>
-
-
-### ***Writeup***
+### *Writeup*
 
 Base64 decode.
 
 Flag: `jctf{tRY_AES_INsT3@d}`
 
-## **would-you-wordle**
+## would-you-wordle
 
-### ***Description***
+### *Description*
 
 - Someone left this secret text string and unfinished Wordle. Can you put them together to get the flag?
 - pUpPHg3KfB15MG2KGtQQMDEECPOF8oa3VA==
@@ -50,11 +48,9 @@ Flag: `jctf{tRY_AES_INsT3@d}`
     <summary>View Hint</summary>
     Ron's Code
 </details>
-
-
 [Wordle-Words.jpg](https://www.jerseyctf.site/files/9e4f94397863b790448bdf8eeddb771b/Wordle-Words.jpg?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MjR9.YlRzBw.2Zq5pK-TK91ofW5wbFrS9Oi5azo)
 
-### ***Writeup***
+### *Writeup*
 
 Wordle is “thorn”. You can use any 5 letter finder like the one here: https://wordfinderx.com/wordle/.
 
@@ -62,9 +58,9 @@ Then use a RC4 decryption (aka Ron's cipher) with the key "thorn" to get the fla
 
 Flag: `jctf{CryptoIsTheKeyToFun}`
 
-## **hidden-in-plain-sight**
+## hidden-in-plain-sight
 
-### ***Description***
+### *Description*
 
 - A file contains the flag but it is encrypted. Normally this would be impossible to crack, but you have the encryption algorithm source code in front of you. Try to shift through it and see the vulnerabilities that can get that flag decrypted!
 
@@ -72,13 +68,11 @@ Flag: `jctf{CryptoIsTheKeyToFun}`
     <summary>View Hint</summary>
     The file looks a little longer than you would expect.
 </details>
-
-
 [encrypted.pco](https://www.jerseyctf.site/files/4adc86865b2d62c34926ba5bb015c091/encrypted.pco?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MjJ9.YlRyaA.bifKmUpWQOC-6gxQxHf8pGuqw_A)
 
 [encryption.py](https://www.jerseyctf.site/files/7dcacf39976161066a24293b9fd35913/encryption.py?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MjN9.YlRyaA.nKTTT-djO20EyX5uxoLL_54yF74)
 
-### ***Writeup***
+### *Writeup*
 
 Reverse the AES encryption. Might need to install the Cryptodome package by `pip install pycryptodomex`.
 
@@ -97,9 +91,9 @@ print(original_data)
 
 Flag: `jctf{CryptoIsTheKeyToFun}`
 
-## **file-zip-cracker**
+## file-zip-cracker
 
-### ***Description***
+### *Description*
 
 - We have a secret file that is password protected. However, we have obtained a wordlist of actors that is part of the password. The password is the combination of one of the names on the list with a year.
 - **Format**: "Actor_NameYYYY" **Example**: "Henry_Cavill1964"
@@ -111,7 +105,7 @@ Flag: `jctf{CryptoIsTheKeyToFun}`
 
 [secret_folder.zip](https://www.jerseyctf.site/files/29d964bd6ef2680db85a65d701945900/secret_folder.zip?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6Mjd9.YlR0Cg.W9lzEoUc_iASDC_hzwm3uwr7F-A)
 
-### ***Writeup***
+### *Writeup*
 
 Brute force using a python script. Caesar cipher to decode the key. Run `file` and change file type to .gif.
 
