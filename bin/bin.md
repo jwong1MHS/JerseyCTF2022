@@ -13,8 +13,6 @@ Where'd the flag go?
     <summary>View Hint</summary>
     There are many ways to solve this challenge, some of which are much easier than others.
 </details>
-
-
 [misdirection](https://www.jerseyctf.site/files/3eadc1906cef0acc4030cb7a9afa3ea2/misdirection?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MzF9.YlR4EQ.XKV_izbjw9xvfblun3io4A9Ry0w)
 
 ### *Writeup*
