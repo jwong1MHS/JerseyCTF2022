@@ -75,7 +75,6 @@ Flag: `jctf{78POYdCGzf}`
 
 **Connect with NJCCIC**: *Website*: [https://cyber.nj.gov](https://cyber.nj.gov/)
 
-
 ### *Writeup*
 
 Flag: `jctf{pr0t3ct_NJ_cyb3r_sp@C3}`
@@ -85,7 +84,6 @@ Flag: `jctf{pr0t3ct_NJ_cyb3r_sp@C3}`
 ### *Description*
 
 **Connect with FRSecure:** *Website*: https://frsecure.com/
-
 
 ### *Writeup*
 
@@ -97,7 +95,6 @@ Flag: `jctf{inf0rmation_SECURITY_#1}`
 
 **Connect with Google:** *Website*: https://cloud.google.com/
 
-
 ### *Writeup*
 
 Flag: `jctf{z3r0_trust_infr@structure}`
@@ -107,7 +104,6 @@ Flag: `jctf{z3r0_trust_infr@structure}`
 ### *Description*
 
 **Connect with Palo Alto Networks:** *Website*: https://www.paloaltonetworks.com/
-
 
 ### *Writeup*
 
@@ -119,7 +115,6 @@ Flag: `jctf{gl0b@l_cyb3rSECurity_l3@der}`
 
 **Connect with CrowdStrike:** *Website*: https://www.crowdstrike.com/
 
-
 ### *Writeup*
 
 Flag: `jctf{br3aches_stop_HERE!}`
@@ -129,7 +124,6 @@ Flag: `jctf{br3aches_stop_HERE!}`
 ### *Description*
 
 On Sunday, the JerseyCTF Feedback Google Form will be released on the Discord #announcements text channel. Fill out this feedback form for a flag in the confirmation message!
-
 
 ### *Writeup*
 

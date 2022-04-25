@@ -11,8 +11,7 @@
 ### *Description*
 
 - Roman generals really knew how to make salad!
-- <span style="color: #e83e8c;">`atkw{plddp_jrcru_uivjjzex}`</span>
-
+- `atkw{plddp_jrcru_uivjjzex}`
 
 ### *Writeup*
 
@@ -25,12 +24,13 @@ Flag: `jctf{yummy_salad_dressing}`
 ### *Description*
 
 - On the first day of the job, a new cryptography intern is insisting to upper management that he developed a new encryption algorithm for the company to use for sensitive emails and should get a raise. This seems too good to be true... are you able to prove the intern wrong by decrypting it?
-- Here's an example of an encrypted email message using the intern's algorithm: <span style="color: #e83e8c;">`amN0Znt0UllfQUVTX0lOc1QzQGR9`</span>
+- Here's an example of an encrypted email message using the intern's algorithm: `amN0Znt0UllfQUVTX0lOc1QzQGR9`
 
 <details>
     <summary>View Hint</summary>
     What are some differences between encryption, encoding, and hashing?
 </details>
+
 ### *Writeup*
 
 Base64 decode.
@@ -48,6 +48,7 @@ Flag: `jctf{tRY_AES_INsT3@d}`
     <summary>View Hint</summary>
     Ron's Code
 </details>
+
 [Wordle-Words.jpg](https://www.jerseyctf.site/files/9e4f94397863b790448bdf8eeddb771b/Wordle-Words.jpg?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MjR9.YlRzBw.2Zq5pK-TK91ofW5wbFrS9Oi5azo)
 
 ### *Writeup*
@@ -68,6 +69,7 @@ Flag: `jctf{CryptoIsTheKeyToFun}`
     <summary>View Hint</summary>
     The file looks a little longer than you would expect.
 </details>
+
 [encrypted.pco](https://www.jerseyctf.site/files/4adc86865b2d62c34926ba5bb015c091/encrypted.pco?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MjJ9.YlRyaA.bifKmUpWQOC-6gxQxHf8pGuqw_A)
 
 [encryption.py](https://www.jerseyctf.site/files/7dcacf39976161066a24293b9fd35913/encryption.py?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6MjN9.YlRyaA.nKTTT-djO20EyX5uxoLL_54yF74)

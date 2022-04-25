@@ -17,8 +17,8 @@
     <summary>View Hint</summary>
 	Which directory types should sensitive files not be placed in?
 </details>
-[webtraffic.log](https://www.jerseyctf.site/files/3a0428612620ef7b190032655f097b00/webtraffic.log?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6OH0.YlYjVw.k0472hBVgZ8pNS9aLHisdMszles)
 
+[webtraffic.log](https://www.jerseyctf.site/files/3a0428612620ef7b190032655f097b00/webtraffic.log?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6OH0.YlYjVw.k0472hBVgZ8pNS9aLHisdMszles)
 
 ### *Writeup*
 
@@ -54,8 +54,8 @@ Flag: `jctf{1M_s0_1M_5o_Dyn4Mit3_092478}`
     <summary>View Hint</summary>
 	This is not intended to require manual brute force. What are some other types of brute force methods?
 </details>
-[users.txt](https://www.jerseyctf.site/files/b75ea9a239df8ec1408edc31d05932b3/users.txt?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6OX0.YlYlAg.llQS13U44BZu_MnEALyBwcMWvUM)
 
+[users.txt](https://www.jerseyctf.site/files/b75ea9a239df8ec1408edc31d05932b3/users.txt?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6OX0.YlYlAg.llQS13U44BZu_MnEALyBwcMWvUM)
 
 ### *Writeup*
 
@@ -70,7 +70,7 @@ Flag: `jctf{c0NGR@T2_y0U_p@22wORd_SPR@y3D!}`
 - I'm very organized. I even keep all of my flags neatly organized in a database! But, these are my flags! You don't have access to them... or do you?
 - Do not brute force this challenge.
 
-<span style="color: #e83e8c;">Start here: jerseyctf-flag-vault.chals.io</span>
+Start here: jerseyctf-flag-vault.chals.io
 
 <details>
     <summary>View Hint</summary>
@@ -96,8 +96,7 @@ Granny's Cookie Factory
 
 - Here at Granny's Old-Fashioned Home-Baked Cookie Factory, we pride ourselves on our cookies AND security being the best in the business.
 
-<span style="color: #e83e8c;">Start here: https://jerseyctf-cookie-factory.chals.io/</span>
-
+Start here: https://jerseyctf-cookie-factory.chals.io/
 
 ### *Writeup*
 

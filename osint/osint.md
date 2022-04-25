@@ -14,6 +14,7 @@
     <summary>View Hint</summary>
     How are IP addresses pointed towards domain names?
 </details>
+
 ### *Writeup*
 
 Use DNS lookup tool on https://www.jerseyctf.com/.
@@ -31,6 +32,7 @@ Flag: `jctf{DNS_J0k3s_t@k3_24_hrs}`
     <summary>View Hint</summary>
     GPS coordinates aren't the only method of specifying a location.
 </details>
+
 [photo-op-shot.JPG](https://www.jerseyctf.site/files/6ff5e1564d4137f5d48463aedb8e5632/photo-op-spot.JPG?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6NDB9.YlR90A.K0YFsNi4Ihmwgz69ZbnR1DWQs-E)
 
 ### *Writeup*
@@ -46,7 +48,7 @@ Flag: `jctf{solofadesbrief}`
 ### *Description*
 
 - With three belonging to a respective company, there is only a two-digit number amount of this entity left in the world. There is one near this picture... how close can you get to it?
-- The flag format is the coordinates in decimal degrees notation, for example: <span style="color: #e83e8c;">`jctf{-65.913734,-10.814140}`</span>
+- The flag format is the coordinates in decimal degrees notation, for example: `jctf{-65.913734,-10.814140}`
 - Get the coordinates **at the gate**
 
 <details>
@@ -57,6 +59,7 @@ Flag: `jctf{solofadesbrief}`
     <summary>View Hint</summary>
     <a href="https://en.wikipedia.org/wiki/Hindenburg_disaster">https://en.wikipedia.org/wiki/Hindenburg_disaster</a>
 </details>
+
 [picture.png](https://www.jerseyctf.site/files/4133210b82b0c48fc842bee2a7ab7fee/picture.png?token=eyJ1c2VyX2lkIjozODgsInRlYW1faWQiOjUxMSwiZmlsZV9pZCI6NDF9.YlSBiA.AIUYELs0qMedI9HnhxsrEjieKoM)
 
 ### *Writeup*
