@@ -2,7 +2,7 @@
 
 Jeopardy-style CTF hosted by NJIT ACM at https://www.jerseyctf.site/challenges
 
-Official writeup and challenges can be found on their GitHub: https://www.jerseyctf.site/challenges
+Official writeup and challenges can be found on their GitHub: https://github.com/njitacm/jerseyctf-2022-challenges
 
 ## Table of Contents
 
